@@ -1,7 +1,7 @@
 
 #include <Adafruit_NeoPixel.h>
 #ifndef PSTR
- #define PSTR // Make Arduino Due happy
+//#define PSTR // Make Arduino Due happy
 #endif
 #define LED_CTRL_PIN 6
 #define MUSIC_PLAYING_THRESHOLD 60
@@ -21,29 +21,53 @@ int pixelCounters[2] = {0,35};
 uint32_t colors[3] = {strip.Color(255,0,0),strip.Color(0,255,0),strip.Color(0,0,255)};
 int iterCounters[2] = {0,36};
 int delayCounter=0;
+
 void setup()
 {
- // start the led display
- strip.begin();
+  // start the led display
+  strip.begin();
+  delay(1000);
 }
 
 void loop()
 {  
-  playBlueWhiteLights(); // show the rainbow light animation
-  delay(100);
-
+//  for(int i=1000; i>0; i=i-5) {
+//    playBlueWhiteLights(50); // show the rainbow light animation
+//    delay(i);
+//  }
+  for(int i=50; i>0; i=i-5) {
+    strip.clear();
+    blueWhiteWipe(i);
+  //  delay(100);
+    strip.show();
+  }
 }
 
-void playBlueWhiteLights(){
+// Fill the dots one after the other with a color
+void blueWhiteWipe(uint8_t wait) {
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+      if(i%2==0) {
+        strip.setPixelColor(i, strip.Color(0, 0, 255));
+      } else {
+        strip.setPixelColor(i, strip.Color(55, 55, 55));
+      }
+      strip.show();
+      delay(wait);
+  }
+}
+
+void playBlueWhiteLights(int myDelay){
   uint16_t i, j;
   for(i = 0; i < LEDS_PER_GROUP; i++) {
     strip.clear();
     for(j = 0; j < NUM_GROUPS; j++){
       strip.setPixelColor(LEDS_PER_GROUP*j + i, strip.Color(0, 0, 50));
       strip.show();
+      delay(myDelay);
       delay(50);
     }
     strip.clear();
+    delay(myDelay);
   }
   if(colorCounter>=255){
     colorCounter = 0; 
@@ -157,3 +181,4 @@ uint32_t Wheel(byte WheelPos) {
    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   }
 }
+
