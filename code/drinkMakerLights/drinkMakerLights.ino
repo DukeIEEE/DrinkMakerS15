@@ -1,4 +1,3 @@
-
 #include <Adafruit_NeoPixel.h>
 #ifndef PSTR
 //#define PSTR // Make Arduino Due happy
@@ -22,41 +21,160 @@ uint32_t colors[3] = {strip.Color(255,0,0),strip.Color(0,255,0),strip.Color(0,0,
 int iterCounters[2] = {0,36};
 int delayCounter=0;
 
-void setup()
-{
-  // start the led display
-  strip.begin();
-  delay(1000);
+// layer settings
+uint32_t BLUE = strip.Color(0, 0, 255);
+uint32_t WHITE = strip.Color(170, 255, 255);
+uint32_t COLOR1 = strip.Color(85,255,255);
+uint32_t COLOR2 = strip.Color(40,170,255);
+uint32_t COLOR3 = strip.Color(0,100,255);
+uint32_t COLOR4 = strip.Color(0,70,255);
+uint32_t COLOR5 = strip.Color(0,30,255);
+
+//int index[12][6];
+
+uint32_t findColor(char c) {
+  if(c=='0') { //white
+    return WHITE;
+  } else if(c=='1') { //cyan
+    return COLOR1;
+  } else if(c=='2') { //blue
+    return COLOR2;
+  } else if(c=='3') { //blue
+    return COLOR3;
+  } else if(c=='4') {
+    return COLOR4;
+  } else if(c=='5') {
+    return COLOR5;
+  } else { //Duke
+    return BLUE;
+  }
 }
 
-void loop()
-{  
+const int numColors = 6;
+const int numLayers = 12;
+char sequence[numLayers*numColors];// = "012343210123432101234321012343210123432101234321012343210123432101234321012343210123432101234321";
+
+void setup() {
+  for(int i=0; i<numColors*(numLayers-2); i+=(numColors*2-2)) {
+    int j = i%numColors;
+    for (int j = 0; j < numColors * 2 - 2; j++) {
+      sequence[i] = '0';
+      sequence[i+1] = '1';
+      sequence[i+2] = '2';
+      sequence[i+3] = '3';
+      sequence[i+4] = '4';
+      sequence[i+5] = '5';
+      sequence[i+6] = '4';
+      sequence[i+7] = '3';
+      sequence[i+8] = '2';
+      sequence[i+9] = '1';
+    }
+  }
+  
+  // start the led display
+  strip.begin();
+  delay(100);
+  showSequence(50);
+
+  strip.show();
+}
+
+void loop() {
 //  for(int i=1000; i>0; i=i-5) {
 //    playBlueWhiteLights(50); // show the rainbow light animation
 //    delay(i);
 //  }
-  for(int i=50; i>0; i=i-5) {
-    strip.clear();
-    blueWhiteWipe(i);
-  //  delay(100);
-    strip.show();
+//  for(int i=50; i>0; i=i-5) {
+//    strip.clear();
+//    blueWhiteWipe(i, 2,3);
+//    delay(100);
+//    strip.show();
+//  }
+//  blueWhiteWipe(50, 2,3);
+//  spiralBlueWhite(50);
+
+//  showSequence(50);
+
+  strip.show();
+}
+
+void showSequence(int wait) {
+//  uint16_t i;
+  for(int i=0; i<NUM_LEDS; i++) {
+    strip.setPixelColor(i, findColor(sequence[i]));
+  }
+  delay(wait);
+}
+
+//
+//uint32_t colorMix(uint32_t a, uint32_t b) {
+//  uint8_t r = a.
+//}
+
+//Theatre-style crawling lights with rainbow effect
+void spiral(uint8_t wait) {
+  for (int j=0; j < 256; j++) {     // cycle all 256 colors in the wheel
+    for (int q=0; q < 3; q++) {
+        for (int i=0; i < strip.numPixels(); i=i+1) {
+          strip.setPixelColor(i+q, Wheel((i+j) % 255));    //turn every third pixel on
+        }
+        strip.show();
+       
+        delay(wait);
+       
+//        for (int i=0; i < strip.numPixels(); i=i+3) {
+//          strip.setPixelColor(i+q, 0);        //turn every third pixel off
+//        }
+    }
   }
 }
 
-// Fill the dots one after the other with a color
-void blueWhiteWipe(uint8_t wait) {
-  for(uint16_t i=0; i<strip.numPixels(); i++) {
-      if(i%2==0) {
-        strip.setPixelColor(i, strip.Color(0, 0, 255));
+// Input a value 0 to 255 to get a color value.
+// The colours are a transition r - g - b - back to r.
+uint32_t BlueWhiteWheel(byte WheelPos) {
+//  WheelPos = 255 - WheelPos;
+  if(WheelPos < 85) {
+   return BLUE;
+  } else if(WheelPos < 170) {
+    WheelPos -= 85;
+   return WHITE;
+  } else {
+   WheelPos -= 170;
+   return (BLUE+WHITE)/2;
+  }
+}
+
+// play the default rainbow lights animation
+void spiralBlueWhite(int wait){
+  uint16_t i;
+  for(i=0; i< strip.numPixels(); i++) {
+    strip.setPixelColor(i, BlueWhiteWheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
+  }
+  colorCounter++;
+  if(colorCounter>=256){
+    colorCounter = 0; 
+  }
+  delay(wait);
+}
+
+// Blue-white gradient
+void blueWhiteWipe(int wait, int light0, int lightf) {
+  for(uint16_t i=0; i<NUM_LEDS; i++) {
+      int layer = i/LEDS_PER_GROUP;
+      int light = (i+layer)%LEDS_PER_GROUP; //shifting
+      if(light<=light0) {
+        strip.setPixelColor(i, BLUE);
+      } else if(light>lightf) {
+        strip.setPixelColor(i, WHITE);
       } else {
-        strip.setPixelColor(i, strip.Color(55, 55, 55));
+        strip.setPixelColor(i, (BLUE+WHITE)/2);
       }
       strip.show();
       delay(wait);
   }
 }
 
-void playBlueWhiteLights(int myDelay){
+void playBlueWhiteLights(int myDelay) {
   uint16_t i, j;
   for(i = 0; i < LEDS_PER_GROUP; i++) {
     strip.clear();
@@ -69,7 +187,7 @@ void playBlueWhiteLights(int myDelay){
     strip.clear();
     delay(myDelay);
   }
-  if(colorCounter>=255){
+  if(colorCounter>=255) {
     colorCounter = 0; 
   }
 }
