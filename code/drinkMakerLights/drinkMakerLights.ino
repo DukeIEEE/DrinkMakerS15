@@ -23,14 +23,19 @@ int delayCounter=0;
 
 // layer settings
 uint32_t BLUE = strip.Color(0, 0, 255);
-uint32_t WHITE = strip.Color(170, 255, 255);
+uint32_t WHITE = strip.Color(150, 255, 255);
 uint32_t COLOR1 = strip.Color(85,255,255);
 uint32_t COLOR2 = strip.Color(40,170,255);
-uint32_t COLOR3 = strip.Color(0,100,255);
-uint32_t COLOR4 = strip.Color(0,70,255);
-uint32_t COLOR5 = strip.Color(0,30,255);
+uint32_t COLOR3 = strip.Color(0,140,255);
+uint32_t COLOR4 = strip.Color(0,100,255);
+uint32_t COLOR5 = strip.Color(0,40,255);
 
 //int index[12][6];
+
+const int numColors = 6;
+const int numLayers = 12;
+char rep_sequence[] = "012345654321";
+char sequence[numLayers*numColors];
 
 uint32_t findColor(char c) {
   if(c=='0') { //white
@@ -50,33 +55,25 @@ uint32_t findColor(char c) {
   }
 }
 
-const int numColors = 6;
-const int numLayers = 12;
-char sequence[numLayers*numColors];// = "012343210123432101234321012343210123432101234321012343210123432101234321012343210123432101234321";
+void createSequence() {
+  for(int i=0; i<numColors*(numLayers-2); i++) {
+    int j = i%(2*numColors);
+//    for (int j = 0; j < numColors * 2 - 2; j++) {
+//      sequence[i] = rep_sequence[j%numColors];
+//    }
+    sequence[i] = rep_sequence[j];
+  }
+}
 
 void setup() {
-  for(int i=0; i<numColors*(numLayers-2); i+=(numColors*2-2)) {
-    int j = i%numColors;
-    for (int j = 0; j < numColors * 2 - 2; j++) {
-      sequence[i] = '0';
-      sequence[i+1] = '1';
-      sequence[i+2] = '2';
-      sequence[i+3] = '3';
-      sequence[i+4] = '4';
-      sequence[i+5] = '5';
-      sequence[i+6] = '4';
-      sequence[i+7] = '3';
-      sequence[i+8] = '2';
-      sequence[i+9] = '1';
-    }
-  }
+  createSequence();
   
   // start the led display
   strip.begin();
   delay(100);
-  showSequence(50);
+//  showSequence(50);
 
-  strip.show();
+  strip.clear();
 }
 
 void loop() {
@@ -93,16 +90,17 @@ void loop() {
 //  blueWhiteWipe(50, 2,3);
 //  spiralBlueWhite(50);
 
-//  showSequence(50);
-
-  strip.show();
+  for(int i=0; i<NUM_LEDS; i++) {
+    showSequence(50,i);
+  }
 }
 
-void showSequence(int wait) {
+void showSequence(int wait, int shift) {
 //  uint16_t i;
   for(int i=0; i<NUM_LEDS; i++) {
-    strip.setPixelColor(i, findColor(sequence[i]));
+    strip.setPixelColor((i+shift)%NUM_LEDS, findColor(sequence[i]));
   }
+  strip.show();
   delay(wait);
 }
 
