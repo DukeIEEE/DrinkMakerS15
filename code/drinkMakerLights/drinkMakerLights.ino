@@ -37,6 +37,8 @@ const int numLayers = 12;
 char rep_sequence[] = "012345654321";
 char sequence[numLayers*numColors];
 
+//char bubbleSeq[2*numColors] = rep_sequence;
+
 uint32_t findColor(char c) {
   if(c=='0') { //white
     return WHITE;
@@ -65,6 +67,39 @@ void createSequence() {
   }
 }
 
+void showSequence(int wait, int shift) {
+//  uint16_t i;
+  for(int i=0; i<NUM_LEDS; i++) {
+    strip.setPixelColor((i+shift)%NUM_LEDS, findColor(sequence[i]));
+  }
+  strip.show();
+  delay(wait);
+}
+
+void bubble(int wait) {
+  for(int i = 0; i<numColors; i++) {
+    for(int j = 0; j<LEDS_PER_GROUP; j++) {
+      strip.setPixelColor(LEDS_PER_GROUP*i+j, findColor(rep_sequence[i%LEDS_PER_GROUP]));
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+void bubbleTrain(int wait) {
+  int shiftCount;
+  for (int shiftCount = 0; shiftCount < NUM_GROUPS; shiftCount++){
+    strip.clear();
+    for(int i = 0; i<NUM_GROUPS; i++) {
+      for(int j = 0; j<LEDS_PER_GROUP; j++) {
+        strip.setPixelColor(LEDS_PER_GROUP*i+j, findColor(rep_sequence[(shiftCount+i)%(2*LEDS_PER_GROUP)]));
+      }
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
 void setup() {
   createSequence();
   
@@ -74,6 +109,8 @@ void setup() {
 //  showSequence(50);
 
   strip.clear();
+  
+  Serial.begin(9600);
 }
 
 void loop() {
@@ -90,18 +127,19 @@ void loop() {
 //  blueWhiteWipe(50, 2,3);
 //  spiralBlueWhite(50);
 
-  for(int i=0; i<NUM_LEDS; i++) {
-    showSequence(50,i);
-  }
-}
+    for(int i=0; i<NUM_LEDS; i++) {
+      bool drinkPoured = Serial.read()=='0';
+      if(!drinkPoured) {
+        showSequence(50,i);
+      } else {
+        for(int j=0; j<2; j++) {
+          bubbleTrain(100);
+        }
+      }
+    }
 
-void showSequence(int wait, int shift) {
-//  uint16_t i;
-  for(int i=0; i<NUM_LEDS; i++) {
-    strip.setPixelColor((i+shift)%NUM_LEDS, findColor(sequence[i]));
-  }
-  strip.show();
-  delay(wait);
+  //bubble(500);
+//  bubbleTrain(200);
 }
 
 //
