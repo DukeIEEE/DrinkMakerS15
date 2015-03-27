@@ -22,13 +22,13 @@ int iterCounters[2] = {0, 36};
 int delayCounter = 0;
 
 // layer settings
-uint32_t BLUE = strip.Color(0, 0, 255);
-uint32_t WHITE = strip.Color(150, 255, 255);
+uint32_t COLOR0 = strip.Color(150, 255, 255);
 uint32_t COLOR1 = strip.Color(85,255,255);
 uint32_t COLOR2 = strip.Color(40,170,255);
 uint32_t COLOR3 = strip.Color(0,140,255);
 uint32_t COLOR4 = strip.Color(0,100,255);
 uint32_t COLOR5 = strip.Color(0,40,255);
+uint32_t COLOR6 = strip.Color(0, 0, 255);
 
 const int numColors = 6;
 const int numLayers = 12;
@@ -37,7 +37,7 @@ char sequence[numLayers * numColors];
 
 uint32_t findColor (char c) {
     if (c == '0') { //white
-        return WHITE;
+        return COLOR0;
     }
     else if (c == '1') { //cyan
         return COLOR1;
@@ -55,7 +55,7 @@ uint32_t findColor (char c) {
         return COLOR5;
     }
     else { //Duke
-        return BLUE;
+        return COLOR6;
     }
 }
 
@@ -143,15 +143,15 @@ void spiral (uint8_t wait) {
 // The colors are a transition r - g - b - back to r.
 uint32_t BlueWhiteWheel(byte WheelPos) {
     if (WheelPos < 85) {
-        return BLUE;
+        return COLOR6;
     }
     else if (WheelPos < 170) {
         WheelPos -= 85;
-        return WHITE;
+        return COLOR0;
     }
     else {
         WheelPos -= 170;
-        return (BLUE + WHITE) / 2;
+        return (COLOR6 + COLOR0) / 2;
     }
 }
 
@@ -174,13 +174,13 @@ void blueWhiteWipe (int wait, int light0, int lightf) {
         int layer = i / LEDS_PER_GROUP;
         int light = (i + layer) % LEDS_PER_GROUP; //shifting
         if (light <= light0) {
-            strip.setPixelColor(i, BLUE);
+            strip.setPixelColor(i, COLOR6);
         }
         else if (light > lightf) {
-            strip.setPixelColor(i, WHITE);
+            strip.setPixelColor(i, COLOR0);
         }
         else {
-            strip.setPixelColor(i, (BLUE + WHITE) / 2);
+            strip.setPixelColor(i, (COLOR6 + COLOR0) / 2);
         }
         strip.show();
         delay(wait);
