@@ -239,9 +239,7 @@ void playColorSpiral () {
         if (pixelCounters[i] > strip.numPixels()) {
             pixelCounters[i] = 0;
             iterCounters[i] += 36;
-            if (iterCounters[i] > 255) {
-                iterCounters[i] -= 255; 
-            }
+            iterCounters[i] %= 255;
         }
     }
     if (delayCounter > 10) {
@@ -268,9 +266,7 @@ void playColorRainbowChase () {
         pixelCounter = 0; 
         colorCounter += 36;
     }
-    if (colorCounter > 256) {
-        colorCounter -= 256; 
-    }
+    colorCounter %= 256;
 }
 
 uint32_t Wheel (byte WheelPos) {
