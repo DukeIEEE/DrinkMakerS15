@@ -23,11 +23,11 @@ int delayCounter = 0;
 
 // layer settings
 uint32_t COLOR0 = strip.Color(150, 255, 255);
-uint32_t COLOR1 = strip.Color(85,255,255);
-uint32_t COLOR2 = strip.Color(40,170,255);
-uint32_t COLOR3 = strip.Color(0,140,255);
-uint32_t COLOR4 = strip.Color(0,100,255);
-uint32_t COLOR5 = strip.Color(0,40,255);
+uint32_t COLOR1 = strip.Color(85, 255, 255);
+uint32_t COLOR2 = strip.Color(40, 170, 255);
+uint32_t COLOR3 = strip.Color(0, 140, 255);
+uint32_t COLOR4 = strip.Color(0, 100, 255);
+uint32_t COLOR5 = strip.Color(0, 40, 255);
 uint32_t COLOR6 = strip.Color(0, 0, 255);
 
 const int numColors = 6;
@@ -36,6 +36,7 @@ char rep_sequence[] = "012345654321";
 char sequence[numLayers * numColors];
 
 uint32_t findColor (char c) {
+//    char colorToReturn[] = "COLOR";
     if (c == '0') { //white
         return COLOR0;
     }
@@ -104,9 +105,7 @@ void setup() {
     // start the led display
     strip.begin();
     delay(100);
-
     strip.clear();
-
     Serial.begin(9600);
 }
 
@@ -141,7 +140,7 @@ void spiral (uint8_t wait) {
 
 // Input a value 0 to 255 to get a color value.
 // The colors are a transition r - g - b - back to r.
-uint32_t BlueWhiteWheel(byte WheelPos) {
+uint32_t BlueWhiteWheel (byte WheelPos) {
     if (WheelPos < 85) {
         return COLOR6;
     }
@@ -151,36 +150,36 @@ uint32_t BlueWhiteWheel(byte WheelPos) {
     }
     else {
         WheelPos -= 170;
-        return (COLOR6 + COLOR0) / 2;
+        return (COLOR0 + COLOR6) / 2;
     }
 }
 
 // play the default rainbow lights animation
-void spiralBlueWhite(int wait){
+void spiralBlueWhite (int wait) {
     uint16_t i;
     for (i = 0; i < strip.numPixels(); i++) {
         strip.setPixelColor(i, BlueWhiteWheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
     }
     colorCounter++;
-    if (colorCounter >= 256){
-        colorCounter = 0; 
+    if (colorCounter >= 256) {
+        colorCounter = 0;
     }
     delay(wait);
 }
 
 // Blue-white gradient
-void blueWhiteWipe (int wait, int light0, int lightf) {
+void blueWhiteWipe (int wait, int light0, int lightF) {
     for (uint16_t i = 0; i < NUM_LEDS; i++) {
         int layer = i / LEDS_PER_GROUP;
         int light = (i + layer) % LEDS_PER_GROUP; //shifting
         if (light <= light0) {
             strip.setPixelColor(i, COLOR6);
         }
-        else if (light > lightf) {
+        else if (light > lightF) {
             strip.setPixelColor(i, COLOR0);
         }
         else {
-            strip.setPixelColor(i, (COLOR6 + COLOR0) / 2);
+            strip.setPixelColor(i, (COLOR0 + COLOR6) / 2);
         }
         strip.show();
         delay(wait);
@@ -208,7 +207,7 @@ void playBlueWhiteLights (int myDelay) {
 // play the default rainbow lights animation
 void playRainbowLights(){
     uint16_t i;
-    for(i=0; i< strip.numPixels(); i++) {
+    for (i = 0; i < strip.numPixels(); i++) {
         strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
     }
     colorCounter++;
@@ -216,6 +215,7 @@ void playRainbowLights(){
         colorCounter = 0; 
     }
 }
+
 void playSlowRainbow() {
     strip.setPixelColor(pixelCounter, Wheel(colorCounter & 255));
     pixelCounter++;
@@ -227,6 +227,7 @@ void playSlowRainbow() {
         colorCounter = 0; 
     }
 }
+
 void playColorSpiral () {
     int i = 0;
     delayCounter++;
@@ -260,7 +261,6 @@ void playColorRainbowChase () {
         }
         strip.setPixelColor(pixelNumber, Wheel(colorNumber & 255));
     }
-
     pixelCounter++;
     if (pixelCounter > strip.numPixels()) {
         pixelCounter = 0; 
