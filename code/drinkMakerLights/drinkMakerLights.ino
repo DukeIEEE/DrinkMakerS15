@@ -17,7 +17,7 @@ int NUM_GROUPS = NUM_LEDS / LEDS_PER_GROUP;
 unsigned long elapsedTime = 0;
 unsigned long drinkStartTime = 0;
 int pixelCounters[2] = {0, 35};
-uint32_t colors[3] = {strip.Color(255, 0, 0),strip.Color(0, 255, 0),strip.Color(0, 0, 255)};
+uint32_t colors[3] = {strip.Color(255, 0, 0), strip.Color(0, 255, 0), strip.Color(0, 0, 255)};
 int iterCounters[2] = {0, 36};
 int delayCounter = 0;
 
@@ -99,7 +99,7 @@ void bubbleTrain (int wait) {
     }
 }
 
-void setup() {
+void setup () {
     createSequence();
 
     // start the led display
@@ -109,7 +109,7 @@ void setup() {
     Serial.begin(9600);
 }
 
-void loop() {
+void loop () {
     for (int i = 0; i < NUM_LEDS; i++) {
         bool drinkPoured = (Serial.read() == '0');
         if (!drinkPoured) {
