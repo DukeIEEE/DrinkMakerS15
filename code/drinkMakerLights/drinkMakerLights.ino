@@ -8,12 +8,6 @@
 #define NUM_LEDS 60
 #define LEDS_PER_GROUP 6
 
-#define rxPin 18
-#define txPin 19
-
-// set up a new serial port
-SoftwareSerial mySerial =  SoftwareSerial(rxPin, txPin);
-
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, LED_CTRL_PIN, NEO_GRB + NEO_KHZ800); //Set up our strip
 
 int colorCounter = 0; // counter for position on the color wheel
@@ -36,7 +30,7 @@ const int resetPin = 3; // multiplexer reset pin
 const int motorPins[] = {A0,A1,A2,A3,A4}; // pump pins
 const long motorTimes[] = {17,30,30,30,17}; //seconds needed to dispense one shot
 
-int inputData; // Data input from bluetooth data
+char inputData; // Data input from bluetooth data
 int isTypingRecipie = 0; // A boolaen indicating whether a recipie is being types
 int drinkIndex = 0; // the index of the current drink we are entering
 int buttonState = 0;  // variable for reading the pushbutton status
@@ -95,6 +89,9 @@ void showSequence(int wait, int shift) {
   //  uint16_t i;
   for (int i = 0; i < NUM_LEDS; i++) {
     strip.setPixelColor((i + shift) % NUM_LEDS, findColor(sequence[i]));
+//    Serial.println("debug_sequence");
+    delay(10);
+    listenForBluetoothAndAct();   // receive bluetooth messages
   }
   strip.show();
   delay(wait);
@@ -135,8 +132,9 @@ void setup() {
   strip.clear();
 
   Serial.begin(9600);
-  mySerial.begin(9600);
+  Serial1.begin(9600);
   Serial.println("finished setup");
+  Serial1.println("finished setup");
 }
 
 void loop() {
@@ -154,7 +152,7 @@ void loop() {
   //  spiralBlueWhite(50);
 
   for (int i = 0; i < NUM_LEDS; i++) {
-    bool drinkPoured = Serial.read() == '0' | mySerial.read() == '0';
+    bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
     if(drinkPoured) {Serial.println('0');}
     if (!drinkPoured) {
       showSequence(50, i);
@@ -294,7 +292,6 @@ void playColorSpiral() {
       {
         iterCounters[i] -= 255;
       }
-
     }
   }
   if (delayCounter > 10) {
@@ -366,20 +363,28 @@ uint32_t Wheel(byte WheelPos) {
 // Bluetooth
 void listenForBluetoothAndAct() {
   // if we have a bluetooth message
-  if (mySerial.available()) {
-    Serial.println("got stuff");
-    inputData = mySerial.read();
+  if (Serial1.available()) {
+//    Serial.println("got stuff");
+    inputData = Serial1.read();
     Serial.println("inputdata = ");
     Serial.println(inputData);
+    
+    //flush on 'f'
+    if(inputData=='f') {
+      checkAndActOnFlushState();
+    }
+    
     // if we're typing a recipie, add the current value to the recipie
     if (isTypingRecipie == 1) {
       // if we're not putting in a comma, add the # to the next digit of the current drink
       if (inputData != ',') {
+        Serial.println("not comma");
         drinkAmounts[drinkIndex] *= 10;
         drinkAmounts[drinkIndex] += inputData;
       }
       // if we did get a comma, move to the next number and check to see if our drink should be prepared
       else {
+        Serial.println("COMMA");
         drinkIndex++;
         // if we've entered all the available drink values, make the drink
         if (drinkIndex >= sizeof(drinkAmounts) / sizeof(int)) {
@@ -392,11 +397,15 @@ void listenForBluetoothAndAct() {
       }
     }
     // type a '\' to start typing a drink
-    if (inputData == '\\' && !pouringDrink)
+    if (inputData == '\\' && !pouringDrink) {
+      Serial.println("start pouring a drink");
       isTypingRecipie = 1;
+    }
     // type an 'x' to stop making drink
     if (inputData == 'x')
       cancelDrinkMaking();
+  } else {
+    Serial.println("no bluetooth connection");
   }
 }
 
@@ -419,7 +428,7 @@ void clearDrinkAmounts() {
 
 // pour a drink according to the hundredths of a shot that were fed in
 void pourDrink() {
-
+  
   if (pouringDrink) {
     Serial.println("Making drink");
     elapsedTime = millis() - drinkStartTime;

@@ -265,7 +265,7 @@ uint32_t Wheel(byte WheelPos) {
 
 void listenForBluetoothAndAct() {
   // if we have a bluetooth message
-//  if (Serial.available() > 0 || mySerial.available() > 0) {
+  if (Serial.available() > 0 || mySerial.available() > 0) {
     Serial.println("got stuff");
     inputData = mySerial.read();
     Serial.println(inputData);
@@ -299,7 +299,7 @@ void listenForBluetoothAndAct() {
     if (inputData == 'm') {
       musicMode = !musicMode;
     }
-//  }
+  }
 }
 
 // cancel a drink recipie
