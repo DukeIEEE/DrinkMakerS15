@@ -17,9 +17,12 @@ int pouringDrink = 0; // a boolean indicating if we are pouring a drink
 int NUM_GROUPS = NUM_LEDS / LEDS_PER_GROUP;
 unsigned long elapsedTime = 0;
 unsigned long drinkStartTime = 0;
-int pixelCounters[2] = {0, 35};
-uint32_t colors[3] = {strip.Color(255, 0, 0), strip.Color(0, 255, 0), strip.Color(0, 0, 255)};
-int iterCounters[2] = {0, 36};
+int pixelCounters[2] = {
+  0, 35};
+uint32_t colors[3] = {
+  strip.Color(255, 0, 0), strip.Color(0, 255, 0), strip.Color(0, 0, 255)};
+int iterCounters[2] = {
+  0, 36};
 int delayCounter = 0;
 
 
@@ -27,16 +30,21 @@ const int buttonPin = 9;     // the number of the pushbutton pin
 const int analogPin = A5; // multiplexer analog read pin
 const int strobePin = 2; // multiplexer strobe pin
 const int resetPin = 3; // multiplexer reset pin
-const int motorPins[] = {A0,A1,A2,A3,A4}; // pump pins
-const long motorTimes[] = {17,30,30,30,17}; //seconds needed to dispense one shot
+const int motorPins[] = {
+  A0,A1,A2,A3,A4}; // pump pins
+const long motorTimes[] = {
+  17,30,30,30,17}; //seconds needed to dispense one shot
 
 char inputData; // Data input from bluetooth data
-int isTypingRecipie = 0; // A boolaen indicating whether a recipie is being types
+int isSelectingTower = 0;
+int selectedTower = 0;
+int isTypingRecipe = 0; // A boolaen indicating whether a recipe is being types
 int drinkIndex = 0; // the index of the current drink we are entering
 int buttonState = 0;  // variable for reading the pushbutton status
 int oldButtonState = 0; // variable for holding the previous button state
 int spectrumValue[7]; // to hold audio spectrum values
-int drinkAmounts[5] = {0,0,0,0,0}; // hundredths of a shot for the current drink
+int drinkAmounts[5] = {
+  0,0,0,0,0}; // hundredths of a shot for the current drink
 
 
 // layer settings
@@ -60,17 +68,23 @@ char sequence[numLayers * numColors];
 uint32_t findColor(char c) {
   if (c == '0') { //white
     return WHITE;
-  } else if (c == '1') { //cyan
+  } 
+  else if (c == '1') { //cyan
     return COLOR1;
-  } else if (c == '2') { //blue
+  } 
+  else if (c == '2') { //blue
     return COLOR2;
-  } else if (c == '3') { //blue
+  } 
+  else if (c == '3') { //blue
     return COLOR3;
-  } else if (c == '4') {
+  } 
+  else if (c == '4') {
     return COLOR4;
-  } else if (c == '5') {
+  } 
+  else if (c == '5') {
     return COLOR5;
-  } else { //Duke
+  } 
+  else { //Duke
     return BLUE;
   }
 }
@@ -89,7 +103,7 @@ void showSequence(int wait, int shift) {
   //  uint16_t i;
   for (int i = 0; i < NUM_LEDS; i++) {
     strip.setPixelColor((i + shift) % NUM_LEDS, findColor(sequence[i]));
-//    Serial.println("debug_sequence");
+    //    Serial.println("debug_sequence");
     delay(10);
     listenForBluetoothAndAct();   // receive bluetooth messages
   }
@@ -153,10 +167,13 @@ void loop() {
 
   for (int i = 0; i < NUM_LEDS; i++) {
     bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
-    if(drinkPoured) {Serial.println('0');}
+    if(drinkPoured) {
+      Serial.println('0');
+    }
     if (!drinkPoured) {
       showSequence(50, i);
-    } else {
+    } 
+    else {
       for (int j = 0; j < 2; j++) {
         bubbleTrain(100);
       }
@@ -196,10 +213,12 @@ uint32_t BlueWhiteWheel(byte WheelPos) {
   //  WheelPos = 255 - WheelPos;
   if (WheelPos < 85) {
     return BLUE;
-  } else if (WheelPos < 170) {
+  } 
+  else if (WheelPos < 170) {
     WheelPos -= 85;
     return WHITE;
-  } else {
+  } 
+  else {
     WheelPos -= 170;
     return (BLUE + WHITE) / 2;
   }
@@ -225,9 +244,11 @@ void blueWhiteWipe(int wait, int light0, int lightf) {
     int light = (i + layer) % LEDS_PER_GROUP; //shifting
     if (light <= light0) {
       strip.setPixelColor(i, BLUE);
-    } else if (light > lightf) {
+    } 
+    else if (light > lightf) {
       strip.setPixelColor(i, WHITE);
-    } else {
+    } 
+    else {
       strip.setPixelColor(i, (BLUE + WHITE) / 2);
     }
     strip.show();
@@ -351,10 +372,12 @@ uint32_t Wheel(byte WheelPos) {
   WheelPos = 255 - WheelPos;
   if (WheelPos < 85) {
     return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  } else if (WheelPos < 170) {
+  } 
+  else if (WheelPos < 170) {
     WheelPos -= 85;
     return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  } else {
+  } 
+  else {
     WheelPos -= 170;
     return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   }
@@ -362,20 +385,40 @@ uint32_t Wheel(byte WheelPos) {
 
 // Bluetooth
 void listenForBluetoothAndAct() {
-  // if we have a bluetooth message
+  // if we have a bluetooth connection
   if (Serial1.available()) {
-//    Serial.println("got stuff");
+    //    Serial.println("got stuff");
     inputData = Serial1.read();
-    Serial.println("inputdata = ");
+    Serial.print("inputdata = ");
     Serial.println(inputData);
-    
-    //flush on 'f'
-    if(inputData=='f') {
-      checkAndActOnFlushState();
+
+    // type 't' to open tower selection
+    if (inputData == 't') {
+      isSelectingTower = 1;
+      Serial.println("Tower selection opened");
     }
     
-    // if we're typing a recipie, add the current value to the recipie
-    if (isTypingRecipie == 1) {
+    // select a tower to command
+    if (isSelectingTower) {
+      if (inputData == '1' || inputData == '2' || inputData == '3') {
+        selectedTower = inputData - 49;
+        isSelectingTower = 0;
+        Serial.print("Selected tower ");
+        Serial.println(selectedTower);
+      }
+      else {
+        Serial.println("Please type 1, 2, or 3 to select tower");
+      }
+    }
+
+    //flush on 'f'
+    if(inputData=='f') {
+      
+      checkAndActOnFlushState();
+    }
+
+    // if we're typing a recipe, add the current value to the recipe
+    if (isTypingRecipe == 1) {
       // if we're not putting in a comma, add the # to the next digit of the current drink
       if (inputData != ',') {
         Serial.println("not comma");
@@ -389,32 +432,32 @@ void listenForBluetoothAndAct() {
         // if we've entered all the available drink values, make the drink
         if (drinkIndex >= sizeof(drinkAmounts) / sizeof(int)) {
           drinkIndex = 0;
-          isTypingRecipie = 0;
+          isTypingRecipe = 0;
           pouringDrink = 1;
           drinkStartTime = millis();
           elapsedTime = 0;
         }
       }
     }
+    
     // type a '\' to start typing a drink
     if (inputData == '\\' && !pouringDrink) {
       Serial.println("start pouring a drink");
-      isTypingRecipie = 1;
+      isTypingRecipe = 1;
     }
     // type an 'x' to stop making drink
-    if (inputData == 'x')
+    if (inputData == 'x') {
       cancelDrinkMaking();
-  } else {
-    Serial.println("no bluetooth connection");
+    }
   }
 }
 
-// cancel a drink recipie
+// cancel a drink recipe
 void cancelDrinkMaking() {
   Serial.println("Done with drink");
   clearDrinkAmounts();
   setAllPumps(LOW);
-  isTypingRecipie = 0;
+  isTypingRecipe = 0;
   pouringDrink = 0;
   drinkIndex = 0;
 }
@@ -428,7 +471,7 @@ void clearDrinkAmounts() {
 
 // pour a drink according to the hundredths of a shot that were fed in
 void pourDrink() {
-  
+
   if (pouringDrink) {
     Serial.println("Making drink");
     elapsedTime = millis() - drinkStartTime;
@@ -470,4 +513,8 @@ void setAllPumps(int state) {
     digitalWrite(motorPins[i], state);
   }
 }
+
+
+
+
 
