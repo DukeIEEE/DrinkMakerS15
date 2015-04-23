@@ -36,6 +36,7 @@ const long motorTimes[] = {
   17,30,30,30,17}; //seconds needed to dispense one shot
 
 char inputData; // Data input from bluetooth data
+int activatedPiece[2] = {0, 0} // 2D array, index 0 for the towers (values 0 through 2) and index 1 for the pumps (values 0 through 4) or the valve (value 5)
 int isSelectingTower = 0;
 int selectedTower = 0;
 int isTypingRecipe = 0; // A boolaen indicating whether a recipe is being types
