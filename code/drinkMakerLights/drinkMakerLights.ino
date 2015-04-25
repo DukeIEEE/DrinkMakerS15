@@ -3,7 +3,7 @@
 #ifndef PSTR
 //#define PSTR // Make Arduino Due happy
 #endif
-#define LED_CTRL_PIN 6
+#define LED_CTRL_PIN 9
 #define MUSIC_PLAYING_THRESHOLD 60
 #define NUM_LEDS 60
 #define LEDS_PER_GROUP 6
@@ -45,7 +45,7 @@ int activatedPiece[2] = {
 }; // 2D array, index 0 for the towers (values 0 through 2) and index 1 for the pumps (values 0 through 4) or the valve (value 5)
 int isSelectingTower = 0;
 int selectedTower = 0;
-int isTypingRecipe = 0; // A boolaen indicating whether a recipe is being types
+int isTypingRecipe = 0; // A boolean indicating whether a recipe is being typed
 int drinkIndex = 0; // the index of the current drink we are entering
 int buttonState = 0;  // variable for reading the pushbutton status
 int oldButtonState = 0; // variable for holding the previous button state
@@ -53,7 +53,6 @@ int spectrumValue[7]; // to hold audio spectrum values
 int drinkAmounts[5] = {
   0, 0, 0, 0, 0
 }; // hundredths of a shot for the current drink
-
 
 // layer settings
 uint32_t BLUE = strip.Color(0, 0, 255);
@@ -456,7 +455,7 @@ void checkAndActOnFlushState () {
   if (!buttonState) { // if the button is pressed
     setAllPumps(HIGH); // turn on the pumps
   }
-  else if (buttonState && (buttonState != oldButtonState)) {// if the button is not pressed and was previously pressed
+  else if (buttonState && (buttonState != oldButtonState)) { // if the button is not pressed and was previously pressed
     setAllPumps(LOW); // turn off the pumps
   }
   oldButtonState = buttonState;
