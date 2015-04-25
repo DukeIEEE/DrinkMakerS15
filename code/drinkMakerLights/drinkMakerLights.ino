@@ -199,7 +199,7 @@ void listenForBluetoothAndAct () {
         Serial.println("COMMA");
         drinkIndex++;
         // if we've entered all the available drink values, make the drink
-        if (drinkIndex >= (sizeof(drinkAmounts) / sizeof(int))) {
+        if (drinkIndex >= (sizeof(drinkAmounts[0]) / sizeof(int))) { // -- added "[0]"
           drinkIndex = 0;
           isTypingRecipe = 0;
           isPouringDrink[selectedTower] = 1;
@@ -250,11 +250,11 @@ void pourDrink () {
     Serial.print("Making drink in Tower ");
     Serial.println(selectedTower);
     elapsedTime[selectedTower] = millis() - drinkStartTime[selectedTower];
-    for (int i = 0; i < sizeof(isAnyPumpStillOn); i++) { // reset all pumps for all towers to LOW
+    for (int i = 0; i < sizeof(isAnyPumpStillOn)/sizeof(int); i++) { // reset all pumps for all towers to LOW -- added "sizeof(int)"
       isAnyPumpStillOn[i] = 0;
     }
     // go through the pumps. If we've poured our amounts, turn off the pump
-    for (int j = 0; j < sizeof(motorPins) / sizeof(int); j++) {
+    for (int j = 0; j < 3; j++) { // -- hard coded 3: sizeof(motorPins[selectedTower]) / sizeof(int)
       for (int i = 0; i < sizeof(motorPins[selectedTower]) / sizeof(int); i++) {
         Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
         Serial.println(elapsedTime[selectedTower]);
@@ -292,14 +292,14 @@ void cancelAllActionsForSelectedTower () {
 
 // set all drink amounts to 0
 void clearDrinkAmountsForSelectedTower () {
-  for (int i = 0; i < (sizeof(drinkAmounts) / sizeof(int)); i++) {
+  for (int i = 0; i < (sizeof(drinkAmounts[0]) / sizeof(int)); i++) { // added "[0]"
     drinkAmounts[selectedTower][i] = 0;
   }
 }
 
 // set all pumps to a given value
 void setAllPumps (int state) {
-  for (uint16_t i = 0; i < (sizeof(motorPins) / sizeof(int)); i++) {
+  for (uint16_t i = 0; i < (sizeof(motorPins[0]) / sizeof(int)); i++) { // -- added "[0]"
     digitalWrite(motorPins[selectedTower][i], state);
   }
 }
