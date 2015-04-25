@@ -1,20 +1,20 @@
 #include <Adafruit_NeoPixel.h>
-#include <SoftwareSerial.h>
+#include <SoftwareSerial.h> //delete?
 #ifndef PSTR
 //#define PSTR // make Arduino Due happy
 #endif
 #define LED_CTRL_PIN 9
-#define NUM_LEDS 60
+#define NUM_LEDS 180
 #define LEDS_PER_GROUP 6
 
 int NUM_GROUPS = NUM_LEDS / LEDS_PER_GROUP;
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, LED_CTRL_PIN, NEO_GRB + NEO_KHZ800); // set up our strip
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_LEDS, LED_CTRL_PIN, NEO_GRB + NEO_KHZ800); // set up our strip -- number LEDs?
 
-const int buttonPin = 9; // the number of the pushbutton pin
-const int analogPin = A5; // multiplexer analog read pin
-const int strobePin = 2; // multiplexer strobe pin
-const int resetPin = 3; // multiplexer reset pin
+const int buttonPin = 9; // the number of the pushbutton pin -- delete?
+const int analogPin = A5; // multiplexer analog read pin -- delete?
+const int strobePin = 2; // multiplexer strobe pin -- delete?
+const int resetPin = 3; // multiplexer reset pin -- delete?
 
 char inputData; // data input from bluetooth data
 
@@ -32,6 +32,7 @@ int activatedPiece[2] = { // 2D array, index 0 for the towers (values 0 through 
   0, 0
 };
 
+// Arrays
 unsigned long drinkStartTime[] = { // start time of pouring drink; towers ordered left to right
   0, 0, 0
 };
@@ -54,10 +55,11 @@ const long motorTimes[][5] = { // seconds needed to dispense one shot; motors or
   {17, 30, 30, 30, 17}  // tower 2
 };
 
+// Initial states
 int selectedTower = 0;  // the index of the tower selected from left to right
 int drinkIndex = 0;     // the index of the current drink we are entering
 
-// color values for LED strip
+// Color constants for LED strip
 uint32_t WHITE = strip.Color(150, 255, 255);
 uint32_t COLOR1 = strip.Color(85, 255, 255);
 uint32_t COLOR2 = strip.Color(40, 170, 255);
@@ -66,10 +68,19 @@ uint32_t COLOR4 = strip.Color(0, 100, 255);
 uint32_t COLOR5 = strip.Color(0, 40, 255);
 uint32_t BLUE = strip.Color(0, 0, 255);
 
+// Constants for blue-white animations
 const int numColors = 6;
-const int numLayers = 12;
+const int numLayers = 30;
 char rep_sequence[] = "012345654321";
 char sequence[numLayers * numColors];
+
+// Constants for full-color animations
+int colorCounter = 0; // counter for position on the color wheel
+int pixelCounter = 0;
+int pixelCounters[2] = {0, 35};
+uint32_t colors[3] = {strip.Color(255, 0, 0), strip.Color(0, 255, 0), strip.Color(0, 0, 255)};
+int iterCounters[2] = {0, 36};
+int delayCounter = 0;
 
 void setup () {
   createSequence();
@@ -81,14 +92,14 @@ void setup () {
   strip.clear();
 
   Serial.begin(9600);
-  Serial3.begin(9600);
+  Serial1.begin(9600);
   Serial.println("finished setup");
-  Serial3.println("finished setup");
+  Serial1.println("finished setup");
 }
 
 void loop () {
   for (int i = 0; i < NUM_LEDS; i++) {
-    bool drinkPoured = Serial.read() == '0' | Serial3.read() == '0';
+    bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
     if (drinkPoured) {
       Serial.println('0');
     }
@@ -163,8 +174,8 @@ uint32_t findColor (char c) {
 void listenForBluetoothAndAct () {
 
   // if we have a bluetooth connection
-  if (Serial3.available()) {
-    inputData = Serial3.read();
+  if (Serial1.available()) {
+    inputData = Serial1.read();
     Serial.print("inputdata = ");
     Serial.println(inputData);
 
@@ -224,6 +235,10 @@ void listenForBluetoothAndAct () {
       if (inputData == 'p' && !isPouringDrink[selectedTower]) {
         Serial.println("Start typing a drink recipe");
         isTypingRecipe = 1;
+      }
+      // type 'r' to begin rainbow animation
+      if (inputData == 'r') {
+        playRainbowLights();
       }
     }
   }
@@ -287,5 +302,104 @@ void setAllPumps (int state) {
   for (uint16_t i = 0; i < (sizeof(motorPins) / sizeof(int)); i++) {
     digitalWrite(motorPins[selectedTower][i], state);
   }
+}
+
+//------------------------------------------------------------------------//
+//                        FULL-COLOR FUNCTIONALITY
+//------------------------------------------------------------------------//
+
+//Theater-style crawling lights with rainbow effect
+void spiral (uint8_t wait) {
+    // cycle all 256 colors in the wheel
+    for (int j = 0; j < 256; j++) {
+        for (int q = 0; q < 3; q++) {
+            for (int i = 0; i < strip.numPixels(); i++) {
+              //turn every third pixel on
+                strip.setPixelColor(i + q, Wheel((i + j) % 255));
+            }
+            strip.show();
+            delay(wait);
+        }
+    }
+}
+
+// play the default rainbow lights animation
+void playRainbowLights () {
+    uint16_t i;
+    for (i = 0; i < strip.numPixels(); i++) {
+        strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
+    }
+    colorCounter++;
+    if (colorCounter >= 256) {
+        colorCounter = 0; 
+    }
+}
+
+void playSlowRainbow () {
+    strip.setPixelColor(pixelCounter, Wheel(colorCounter & 255));
+    pixelCounter++;
+    if (pixelCounter > 72) {
+        pixelCounter = 0; 
+        colorCounter++;
+    }
+    if (colorCounter >= 256) {
+        colorCounter = 0; 
+    }
+}
+
+void playColorSpiral () {
+    int i = 0;
+    delayCounter++;
+    for (i = 0; i < 2; i++) {
+        int pixelNumber = pixelCounters[i];
+        strip.setPixelColor(pixelNumber, Wheel(iterCounters[i] & 255));
+        if (delayCounter > 10) {
+            pixelCounters[i] = pixelCounters[i] + 1;
+        }
+        if (pixelCounters[i] > strip.numPixels()) {
+            pixelCounters[i] = 0;
+            iterCounters[i] += 36;
+            iterCounters[i] %= 255;
+        }
+    }
+    if (delayCounter > 10) {
+        delayCounter = 0; 
+    }
+}
+
+void playColorRainbowChase () {
+    uint16_t i, j;
+    for (i = 72; i > 0; i -= 8) {
+        int colorNumber = 256 - i / 8 * 36;
+        if (colorNumber < 0) {
+            colorNumber += 256;
+        }
+        int pixelNumber = i + pixelCounter;
+        if (pixelNumber > 72) {
+            pixelNumber -= 72; 
+        }
+        strip.setPixelColor(pixelNumber, Wheel(colorNumber & 255));
+    }
+    pixelCounter++;
+    if (pixelCounter > strip.numPixels()) {
+        pixelCounter = 0; 
+        colorCounter += 36;
+    }
+    colorCounter %= 256;
+}
+
+uint32_t Wheel (byte WheelPos) {
+    WheelPos = 255 - WheelPos;
+    if (WheelPos < 85) {
+        return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
+    }
+    else if (WheelPos < 170) {
+        WheelPos -= 85;
+        return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
+    }
+    else {
+        WheelPos -= 170;
+        return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
+    }
 }
 
