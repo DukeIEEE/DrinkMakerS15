@@ -51,8 +51,6 @@ const long motorTimes[][5] = { // seconds needed to dispense one shot; motors or
 
 int selectedTower = 0;  // the index of the tower selected from left to right
 int drinkIndex = 0;     // the index of the current drink we are entering
-int buttonState = 0;    // variable for reading the pushButton status
-int oldButtonState = 0; // variable for holding the previous pushButton state
 
 // color values for LED strip
 uint32_t WHITE = strip.Color(150, 255, 255);
@@ -209,8 +207,8 @@ void listenForBluetoothAndAct () {
     else { // !isTypingRecipe && !isSelectingTower
       // type an 'f' to flush the system
       if (inputData == 'f') {
-        Serial.println("Flush");
-        checkAndActOnFlushState();
+        setAllPumps(HIGH);
+        Serial.println("Flush all pumps on selected tower");
       }
       // type 't' to open tower selection
       if (inputData == 't') {
@@ -258,14 +256,14 @@ void pourDrink () {
 }
 
 // cancel a drink recipe
-void cancelAllActionsForSelectedTower (int towerNumber) {
+void cancelAllActionsForSelectedTower () {
   Serial.print("Done with drink. The current selected tower is Tower ");
   Serial.println(selectedTower);
   clearDrinkAmounts();
   setAllPumps(LOW);
-  isTypingRecipe = 0;
   isPouringDrink = 0;
   isSelectingTower = 0;
+  isTypingRecipe = 0;
   drinkIndex = 0;
 }
 
@@ -276,23 +274,9 @@ void clearDrinkAmounts () {
   }
 }
 
-// check flush button press and enable/disable all pumps accordingly
-void checkAndActOnFlushState () {
-  // read the flush button and set pumps accordingly
-  buttonState = digitalRead(buttonPin);
-  if (!buttonState) { // if the button is pressed
-    setAllPumps(HIGH); // turn on the pumps
-  }
-  else if (buttonState && (buttonState != oldButtonState)) { // if the button is not pressed and was previously pressed
-    setAllPumps(LOW); // turn off the pumps
-  }
-  oldButtonState = buttonState;
-}
-
 // set all pumps to a given value
 void setAllPumps (int state) {
-  uint16_t i;
-  for (i = 0; i < (sizeof(motorPins) / sizeof(int)); i++) {
+  for (uint16_t i = 0; i < (sizeof(motorPins) / sizeof(int)); i++) {
     digitalWrite(motorPins[i], state);
   }
 }
