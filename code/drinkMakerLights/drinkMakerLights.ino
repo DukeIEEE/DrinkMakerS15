@@ -32,9 +32,16 @@ const int buttonPin = 9;     // the number of the pushbutton pin
 const int analogPin = A5; // multiplexer analog read pin
 const int strobePin = 2; // multiplexer strobe pin
 const int resetPin = 3; // multiplexer reset pin
-const int motorPins[] = {
-  A0, A1, A2, A3, A4
+
+const int motorPins[][5] = { // 7 motors per tower
+  {22, 24, 26, 28, 30},
+  {36, 38, 40, 42, 44},
+  {3, 4, 5, 6, 7}
 }; // pump pins
+//const int motorPins[] = { // 7 motors per tower
+//  22, 24, 26, 28, 30
+//}; // pump pins
+
 const long motorTimes[] = {
   17, 30, 30, 30, 17
 }; //seconds needed to dispense one shot
@@ -102,8 +109,9 @@ void createSequence () {
 void showSequence (int wait, int shift) {
   for (int i = 0; i < NUM_LEDS; i++) {
     strip.setPixelColor((i + shift) % NUM_LEDS, findColor(sequence[i]));
-    delay(10);
-    listenForBluetoothAndAct();   // receive bluetooth messages
+    delay(10); // too long?
+    listenForBluetoothAndAct(); // receive bluetooth messages
+    // pourDrink()? main loop?
   }
   strip.show();
   delay(wait);
@@ -162,172 +170,6 @@ void loop () {
         bubbleTrain(100);
       }
     }
-  }
-}
-
-//Theatre-style crawling lights with rainbow effect
-void spiral (uint8_t wait) {
-  for (int j = 0; j < 256; j++) {   // cycle all 256 colors in the wheel
-    for (int q = 0; q < 3; q++) {
-      for (int i = 0; i < strip.numPixels(); i = i + 1) {
-        strip.setPixelColor(i + q, Wheel((i + j) % 255)); //turn every third pixel on
-      }
-      strip.show();
-      delay(wait);
-    }
-  }
-}
-
-// Input a value 0 to 255 to get a color value.
-// The colours are a transition r - g - b - back to r.
-uint32_t BlueWhiteWheel (byte WheelPos) {
-  if (WheelPos < 85) {
-    return BLUE;
-  }
-  else if (WheelPos < 170) {
-    WheelPos -= 85;
-    return WHITE;
-  }
-  else {
-    WheelPos -= 170;
-    return (BLUE + WHITE) / 2;
-  }
-}
-
-// play the default rainbow lights animation
-void spiralBlueWhite (int wait) {
-  uint16_t i;
-  for (i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, BlueWhiteWheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
-  }
-  colorCounter++;
-  if (colorCounter >= 256) {
-    colorCounter = 0;
-  }
-  delay(wait);
-}
-
-// Blue-white gradient
-void blueWhiteWipe (int wait, int light0, int lightf) {
-  for (uint16_t i = 0; i < NUM_LEDS; i++) {
-    int layer = i / LEDS_PER_GROUP;
-    int light = (i + layer) % LEDS_PER_GROUP; //shifting
-    if (light <= light0) {
-      strip.setPixelColor(i, BLUE);
-    }
-    else if (light > lightf) {
-      strip.setPixelColor(i, WHITE);
-    }
-    else {
-      strip.setPixelColor(i, (BLUE + WHITE) / 2);
-    }
-    strip.show();
-    delay(wait);
-  }
-}
-
-void playBlueWhiteLights (int myDelay) {
-  uint16_t i, j;
-  for (i = 0; i < LEDS_PER_GROUP; i++) {
-    strip.clear();
-    for (j = 0; j < NUM_GROUPS; j++) {
-      strip.setPixelColor(LEDS_PER_GROUP * j + i, strip.Color(0, 0, 50));
-      strip.show();
-      delay(myDelay);
-      delay(50);
-    }
-    strip.clear();
-    delay(myDelay);
-  }
-  if (colorCounter >= 255) {
-    colorCounter = 0;
-  }
-}
-
-// play the default rainbow lights animation
-void playRainbowLights () {
-  uint16_t i;
-  for (i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
-  }
-  colorCounter++;
-  if (colorCounter >= 256) {
-    colorCounter = 0;
-  }
-}
-
-void playSlowRainbow () {
-  strip.setPixelColor(pixelCounter, Wheel(colorCounter & 255));
-  pixelCounter++;
-  if (pixelCounter > 72) {
-    pixelCounter = 0;
-    colorCounter++;
-  }
-  if (colorCounter >= 256) {
-    colorCounter = 0;
-  }
-}
-
-void playColorSpiral () {
-  int i = 0;
-  delayCounter++;
-  for (i = 0; i < 2; i++) {
-    int pixelNumber = pixelCounters[i];
-    strip.setPixelColor(pixelNumber, Wheel(iterCounters[i] & 255));
-    if (delayCounter > 10) {
-      pixelCounters[i] += 1;
-    }
-    if (pixelCounters[i] > strip.numPixels()) {
-      pixelCounters[i] = 0;
-      iterCounters[i] += 36;
-      if (iterCounters[i] > 255) {
-        iterCounters[i] -= 255;
-      }
-    }
-  }
-  if (delayCounter > 10) {
-    delayCounter = 0;
-  }
-}
-
-void playColorRainbowChase () {
-  uint16_t i, j;
-  for (i = 72; i > 0; i -= 8) {
-    int colorNumber = 256 - i / 8 * 36;
-    if (colorNumber < 0) {
-      colorNumber += 256;
-    }
-    int pixelNumber = i + pixelCounter;
-    if (pixelNumber > 72) {
-      pixelNumber -= 72;
-    }
-    strip.setPixelColor(pixelNumber, Wheel(colorNumber & 255));
-  }
-
-  pixelCounter++;
-
-  if (pixelCounter > strip.numPixels()) {
-    pixelCounter = 0;
-    colorCounter += 36;
-  }
-
-  if (colorCounter > 256) {
-    colorCounter -= 256;
-  }
-}
-
-uint32_t Wheel (byte WheelPos) {
-  WheelPos = 255 - WheelPos;
-  if (WheelPos < 85) {
-    return strip.Color(255 - WheelPos * 3, 0, WheelPos * 3);
-  }
-  else if (WheelPos < 170) {
-    WheelPos -= 85;
-    return strip.Color(0, WheelPos * 3, 255 - WheelPos * 3);
-  }
-  else {
-    WheelPos -= 170;
-    return strip.Color(WheelPos * 3, 255 - WheelPos * 3, 0);
   }
 }
 
@@ -421,7 +263,7 @@ void clearDrinkAmounts () {
 }
 
 // pour a drink according to the hundredths of a shot that were fed in
-void pourDrink () {
+void pourDrink () { // where does this go?
   if (isPouringDrink) {
     Serial.print("Making drink in Tower");
     Serial.println(selectedTower);
