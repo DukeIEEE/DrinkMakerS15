@@ -27,6 +27,7 @@ int isAnyPumpStillOn[] = { // can be true for any number of towers
 };
 int isSelectingTower = 0; // mutually exclusive for all towers
 int isTypingRecipe = 0; // mutually exclusive for all towers
+int isStripDisplayingRainbowLights = 1;
 
 int activatedPiece[2] = { // 2D array, index 0 for the towers (values 0 through 2, left to right) and index 1 for the pumps (values 0 through 4, clockwise from the space)
   0, 0
@@ -99,17 +100,25 @@ void setup () {
 }
 
 void loop () {
-  for (int i = 0; i < NUM_LEDS; i++) {
-    bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
-    if (drinkPoured) {
-      Serial.println('0');
-    }
-    if (!drinkPoured) {
-      showSequence(50, i);
-    }
-    else {
-      for (int j = 0; j < 2; j++) {
-        bubbleTrain(100);
+  if (isStripDisplayingRainbowLights) {
+    delay(100); // change this to modify animation speed
+    listenForBluetoothAndAct(); // receive bluetooth messages
+    pourDrink();
+    playRainbowLights();
+  }
+  else {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
+      if (drinkPoured) {
+        Serial.println('0');
+      }
+      if (!drinkPoured) {
+        showSequence(50, i);
+      }
+      else {
+        for (int j = 0; j < 2; j++) {
+          bubbleTrain(100);
+        }
       }
     }
   }
