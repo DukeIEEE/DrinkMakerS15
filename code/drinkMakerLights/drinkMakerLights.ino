@@ -251,34 +251,27 @@ void listenForBluetoothAndAct () {
 
 // pour a drink according to the hundredths of a shot that were fed in
 void pourDrink () {
-  if (isPouringDrink[selectedTower]) {
-    Serial.print("Making drink in Tower ");
-    Serial.println(selectedTower);
-    elapsedTime[selectedTower] = millis() - drinkStartTime[selectedTower];
-    for (int i = 0; i < 3; i++) { // reset all pumps for all towers to LOW -- added "/sizeof(int)", hard coded 3: sizeof(isAnyPumpStillOn)/sizeof(int)
-      isAnyPumpStillOn[i] = 0;
-    }
-    // go through the pumps. If we've poured our amounts, turn off the pump
-    for (int j = 0; j < 3; j++) { // -- hard coded 3: sizeof(motorPins[selectedTower]) / sizeof(int)
-      for (int i = 0; i < sizeof(motorPins[selectedTower]) / sizeof(int); i++) {
-        //        Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
-        //        Serial.println(elapsedTime[selectedTower]);
-        if (((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10) <= elapsedTime[selectedTower]) {
-          digitalWrite(motorPins[selectedTower][i], LOW);
-          //          Serial.println("LOW");
-        }
-        else {
-          digitalWrite(motorPins[selectedTower][i], HIGH);
-          //          Serial.println("HIGH");
-          isAnyPumpStillOn[selectedTower] = 1;
-        }
+  for (int tower = 0; tower<3; tower++){
+    if (isPouringDrink[tower]) {
+      elapsedTime[tower] = millis() - drinkStartTime[tower];
+      isAnyPumpStillOn[tower] = 0;
+       
+        for (int i = 0; i < sizeof(motorPins[tower]) / sizeof(int); i++) {
+          
+          if (((long) drinkAmounts[tower][i] * motorTimes[tower][i] * 10) <= elapsedTime[tower]) {
+            digitalWrite(motorPins[tower][i], LOW);
+          }
+          else {
+            digitalWrite(motorPins[tower][i], HIGH);
+            isAnyPumpStillOn[tower] = 1;
+          }
+        
       }
-    }
-
-    // If we're done making the drink, finish the process
-    // Should this boolean be reversed?
-    if (!isAnyPumpStillOn[selectedTower]) {
-      cancelAllActionsForSelectedTower();
+      // If we're done making the drink, finish the process
+      // Should this boolean be reversed?
+      if (!isAnyPumpStillOn[tower]) {
+        cancelAllActionsForSelectedTower(); //TODO make any tower... Make it take in an index
+      }
     }
   }
 }
