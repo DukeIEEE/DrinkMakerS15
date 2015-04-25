@@ -332,7 +332,7 @@ void spiral (uint8_t wait) {
 void playRainbowLights () {
   uint16_t i;
   for (i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255) / 1.5);
+    strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255) / 1.5); // change brightness
   }
   colorCounter++;
   if (colorCounter >= 256) {
