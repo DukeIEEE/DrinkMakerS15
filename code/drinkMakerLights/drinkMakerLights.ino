@@ -51,9 +51,9 @@ const int motorPins[][5] = { // pump pins; motors ordered clockwise from space
   {4, 7, 5, 6, 3}       // tower 2
 };
 const long motorTimes[][5] = { // seconds needed to dispense one shot; motors ordered clockwise from space... calibrate?
-  {10, 20, 30, 40, 50}, // tower 0
-  {10, 20, 30, 40, 50}, // tower 1
-  {10, 20, 30, 40, 50}  // tower 2
+  {15, 30, 30, 30, 15}, // tower 0
+  {15, 30, 30, 30, 15}, // tower 1
+  {15, 30, 30, 30, 15}  // tower 2
 };
 
 // Initial states
