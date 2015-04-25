@@ -178,11 +178,6 @@ void listenForBluetoothAndAct () {
       cancelAll();
     }
 
-    // type an 'f' to flush the system
-    if (inputData == 'f') {
-      checkAndActOnFlushState();
-    }
-
     // if we're typing a recipe, add the current value to the recipe
     if (isTypingRecipe) { // isTypingRecipe && !isSelectingTower
       // if we're not putting in a comma, add the # to the next digit of the current drink
@@ -193,7 +188,7 @@ void listenForBluetoothAndAct () {
         drinkAmounts[drinkIndex] += inputData;
       }
       // if we did get a comma, move to the next number and check to see if our drink should be prepared
-      else {
+      if (inputData == ',') {
         Serial.println("COMMA");
         drinkIndex++;
         // if we've entered all the available drink values, make the drink
@@ -207,18 +202,23 @@ void listenForBluetoothAndAct () {
       }
     }
     else if (isSelectingTower) { // !isTypingRecipe && isSelectingTower
-      if (inputData == '1' || inputData == '2' || inputData == '3') {
-        selectedTower = inputData - 49;
+      if (inputData == '0' || inputData == '1' || inputData == '2') {
+        selectedTower = inputData - 48;
         isSelectingTower = 0;
         Serial.print("Selected tower: Tower ");
         Serial.println(selectedTower);
       }
       else { // incorrect input
-        Serial.println("Please type 1, 2, or 3 to select tower");
+        Serial.println("Please type 0, 1, or 2 to select tower");
       }
     }
     // if we're not typing a recipe, we can turn on isTypingRecipe or isSelectingTower
     else { // !isTypingRecipe && !isSelectingTower
+      // type an 'f' to flush the system
+      if (inputData == 'f') {
+        Serial.println("Flush");
+        checkAndActOnFlushState();
+      }
       // type 't' to open tower selection
       if (inputData == 't') {
         isSelectingTower = 1;
