@@ -45,14 +45,14 @@ int drinkAmounts[][5] = { // hundredths of a shot for the current drink; towers 
   {0, 0, 0, 0, 0}  // tower 2
 };
 const int motorPins[][5] = { // pump pins; motors ordered clockwise from space
-  {22, 24, 26, 28, 30}, // tower 0
-  {36, 38, 40, 42, 44}, // tower 1
-  {3, 4, 5, 6, 7}       // tower 2
+  {30, 22, 26, 24, 28}, // tower 0
+  {36, 40, 44, 38, 42}, // tower 1
+  {4, 7, 5, 6, 3}       // tower 2
 };
 const long motorTimes[][5] = { // seconds needed to dispense one shot; motors ordered clockwise from space... calibrate?
-  {17, 30, 30, 30, 17}, // tower 0
-  {17, 30, 30, 30, 17}, // tower 1
-  {17, 30, 30, 30, 17}  // tower 2
+  {10, 20, 30, 40, 50}, // tower 0
+  {10, 20, 30, 40, 50}, // tower 1
+  {10, 20, 30, 40, 50}  // tower 2
 };
 
 // Initial states
@@ -90,6 +90,7 @@ void setup () {
   delay(100);
 
   strip.clear();
+  strip.show();
 
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -128,7 +129,7 @@ void showSequence (int wait, int lightPositionOffset) { // refactor when the mac
     listenForBluetoothAndAct(); // receive bluetooth messages
     pourDrink();
   }
-  strip.show();
+//  strip.show();
   delay(wait);
 }
 
@@ -141,7 +142,7 @@ void bubbleTrain (int wait) {
         strip.setPixelColor(LEDS_PER_GROUP * i + j, findColor(rep_sequence[(shiftCount + i) % (2 * LEDS_PER_GROUP)]));
       }
     }
-    strip.show();
+//    strip.show();
     delay(wait);
   }
 }
@@ -250,21 +251,21 @@ void pourDrink () {
     Serial.print("Making drink in Tower ");
     Serial.println(selectedTower);
     elapsedTime[selectedTower] = millis() - drinkStartTime[selectedTower];
-    for (int i = 0; i < sizeof(isAnyPumpStillOn)/sizeof(int); i++) { // reset all pumps for all towers to LOW -- added "sizeof(int)"
+    for (int i = 0; i < 3; i++) { // reset all pumps for all towers to LOW -- added "/sizeof(int)", hard coded 3: sizeof(isAnyPumpStillOn)/sizeof(int)
       isAnyPumpStillOn[i] = 0;
     }
     // go through the pumps. If we've poured our amounts, turn off the pump
     for (int j = 0; j < 3; j++) { // -- hard coded 3: sizeof(motorPins[selectedTower]) / sizeof(int)
       for (int i = 0; i < sizeof(motorPins[selectedTower]) / sizeof(int); i++) {
-        Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
-        Serial.println(elapsedTime[selectedTower]);
+//        Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
+//        Serial.println(elapsedTime[selectedTower]);
         if (((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10) <= elapsedTime[selectedTower]) {
           digitalWrite(motorPins[selectedTower][i], LOW);
-          Serial.println("LOW");
+//          Serial.println("LOW");
         }
         else {
           digitalWrite(motorPins[selectedTower][i], HIGH);
-          Serial.println("HIGH");
+//          Serial.println("HIGH");
           isAnyPumpStillOn[selectedTower] = 1;
         }
       }
@@ -317,7 +318,7 @@ void spiral (uint8_t wait) {
               //turn every third pixel on
                 strip.setPixelColor(i + q, Wheel((i + j) % 255));
             }
-            strip.show();
+//            strip.show();
             delay(wait);
         }
     }
