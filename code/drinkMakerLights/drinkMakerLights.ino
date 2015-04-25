@@ -1,74 +1,67 @@
 #include <Adafruit_NeoPixel.h>
 #include <SoftwareSerial.h>
 #ifndef PSTR
-//#define PSTR // Make Arduino Due happy
+//#define PSTR // make Arduino Due happy
 #endif
 #define LED_CTRL_PIN 9
-#define MUSIC_PLAYING_THRESHOLD 60
 #define NUM_LEDS 60
 #define LEDS_PER_GROUP 6
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, LED_CTRL_PIN, NEO_GRB + NEO_KHZ800); //Set up our strip
-
-int colorCounter = 0; // counter for position on the color wheel
-int pixelCounter = 0;
-int isPouringDrink = 0; // a boolean indicating if we are pouring a drink
-
 int NUM_GROUPS = NUM_LEDS / LEDS_PER_GROUP;
-unsigned long elapsedTime = 0;
-unsigned long drinkStartTime = 0;
-int pixelCounters[2] = {
-  0, 35
-};
-uint32_t colors[3] = {
-  strip.Color(255, 0, 0), strip.Color(0, 255, 0), strip.Color(0, 0, 255)
-};
-int iterCounters[2] = {
-  0, 36
-};
-int delayCounter = 0;
 
-const int buttonPin = 9;     // the number of the pushbutton pin
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, LED_CTRL_PIN, NEO_GRB + NEO_KHZ800); // set up our strip
+
+const int buttonPin = 9; // the number of the pushbutton pin
 const int analogPin = A5; // multiplexer analog read pin
 const int strobePin = 2; // multiplexer strobe pin
 const int resetPin = 3; // multiplexer reset pin
 
-//const int motorPins[][5] = { // 7 motors per tower
-//  {22, 24, 26, 28, 30},
-//  {36, 38, 40, 42, 44},
-//  {3, 4, 5, 6, 7}
-//}; // pump pins
-const int motorPins[] = { // 7 motors per tower
-  22, 24, 26, 28, 30
-}; // pump pins
+char inputData; // data input from bluetooth data
 
-const long motorTimes[] = {
-  17, 30, 30, 30, 17
-}; //seconds needed to dispense one shot
+// Booleans
+int isPouringDrink[] = {0, 0, 0}; // can be true for any number of towers
+int isSelectingTower = 0; // mutually exclusive for all towers
+int isTypingRecipe = 0; // mutually exclusive for all towers
 
-char inputData; // Data input from bluetooth data
-int activatedPiece[2] = {
+int activatedPiece[2] = { // 2D array, index 0 for the towers (values 0 through 2, left to right) and index 1 for the pumps (values 0 through 4, clockwise from the space)
   0, 0
-}; // 2D array, index 0 for the towers (values 0 through 2) and index 1 for the pumps (values 0 through 4) or the valve (value 5)
-int isSelectingTower = 0;
-int selectedTower = 0;
-int isTypingRecipe = 0; // A boolean indicating whether a recipe is being typed
-int drinkIndex = 0; // the index of the current drink we are entering
-int buttonState = 0;  // variable for reading the pushbutton status
-int oldButtonState = 0; // variable for holding the previous button state
-int spectrumValue[7]; // to hold audio spectrum values
-int drinkAmounts[] = {
-  0, 0, 0, 0, 0
-}; // hundredths of a shot for the current drink
+};
 
-// layer settings
-uint32_t BLUE = strip.Color(0, 0, 255);
+unsigned long drinkStartTime[] = { // start time of pouring drink; towers ordered left to right
+  0, 0, 0
+};
+unsigned long elapsedTime[] = { // elapsed time of pouring drink; towers ordered left to right
+  0, 0, 0
+};
+int drinkAmounts[][5] = { // hundredths of a shot for the current drink; towers ordered left to right
+  {0, 0, 0, 0, 0}, // tower 0
+  {0, 0, 0, 0, 0}, // tower 1
+  {0, 0, 0, 0, 0}  // tower 2
+};
+const int motorPins[][5] = { // pump pins; motors ordered clockwise from space
+  {22, 24, 26, 28, 30}, // tower 0
+  {36, 38, 40, 42, 44}, // tower 1
+  {3, 4, 5, 6, 7}       // tower 2
+};
+const long motorTimes[][5] = { // seconds needed to dispense one shot; motors ordered clockwise from space... calibrate?
+  {17, 30, 30, 30, 17}, // tower 0
+  {17, 30, 30, 30, 17}, // tower 1
+  {17, 30, 30, 30, 17}  // tower 2
+};
+
+int selectedTower = 0;  // the index of the tower selected from left to right
+int drinkIndex = 0;     // the index of the current drink we are entering
+int buttonState = 0;    // variable for reading the pushButton status
+int oldButtonState = 0; // variable for holding the previous pushButton state
+
+// color values for LED strip
 uint32_t WHITE = strip.Color(150, 255, 255);
 uint32_t COLOR1 = strip.Color(85, 255, 255);
 uint32_t COLOR2 = strip.Color(40, 170, 255);
 uint32_t COLOR3 = strip.Color(0, 140, 255);
 uint32_t COLOR4 = strip.Color(0, 100, 255);
 uint32_t COLOR5 = strip.Color(0, 40, 255);
+uint32_t BLUE = strip.Color(0, 0, 255);
 
 const int numColors = 6;
 const int numLayers = 12;
@@ -175,7 +168,7 @@ void listenForBluetoothAndAct () {
     // type an 'x' to set all booleans to false
     if (inputData == 'x') {
       Serial.println("All booleans reset to 0");
-      cancelAll();
+      cancelAllActionsForSelectedTower();
     }
 
     // if we're typing a recipe, add the current value to the recipe
@@ -259,13 +252,13 @@ void pourDrink () {
     // If we're done making the drink, finish the process
     // Should this boolean be reversed?
     if (!isPumpStillOn) {
-      cancelAll();
+      cancelAllActionsForSelectedTower();
     }
   }
 }
 
 // cancel a drink recipe
-void cancelAll () {
+void cancelAllActionsForSelectedTower (int towerNumber) {
   Serial.print("Done with drink. The current selected tower is Tower ");
   Serial.println(selectedTower);
   clearDrinkAmounts();
