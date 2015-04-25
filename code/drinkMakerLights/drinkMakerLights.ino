@@ -221,7 +221,7 @@ void listenForBluetoothAndAct () {
         Serial.println("Tower selection opened");
       }
       // type a 'p' to start typing a drink recipe
-      if (inputData == 'p' && !isPouringDrink) {
+      if (inputData == 'p' && !isPouringDrink[selectedTower]) {
         Serial.println("Start typing a drink recipe");
         isTypingRecipe = 1;
       }
@@ -241,14 +241,6 @@ void pourDrink () {
     // go through the pumps. If we've poured our amounts, turn off the pump
     for (int j = 0; j < sizeof(motorPins) / sizeof(int); j++) {
       for (int i = 0; i < sizeof(motorPins[selectedTower]) / sizeof(int); i++) {
-        //        for (int n = 0; n < 15 / sizeof(int); n++) { // may need to use hardcode
-        if ((j + 1) * (i + 1) == 15) {
-          Serial3.println("don't need to hardcode");
-        }
-        if ((j + 1) * (i + 1) > 15) {
-          Serial3.println("smh...");
-        }
-
         Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
         Serial.println(elapsedTime[selectedTower]);
         if (((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10) <= elapsedTime[selectedTower]) {
