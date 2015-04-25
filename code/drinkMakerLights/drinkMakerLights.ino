@@ -183,7 +183,7 @@ void listenForBluetoothAndAct () {
     // type an 'x' to set all booleans to false
     if (inputData == 'x') {
       Serial.println("All booleans reset to 0");
-      cancelAllActionsForSelectedTower();
+      cancelAllActionsForSelectedTower(selectedTower);
     }
 
     // if we're typing a recipe, add the current value to the recipe
@@ -226,11 +226,6 @@ void listenForBluetoothAndAct () {
     }
     // if we're not typing a recipe, we can turn on isTypingRecipe or isSelectingTower
     else { // !isTypingRecipe && !isSelectingTower
-      // type an 'f' to flush the system
-      if (inputData == 'f') {
-        setAllPumps(HIGH);
-        Serial.println("Flush all pumps on selected tower");
-      }
       // type 't' to open tower selection
       if (inputData == 't') {
         isSelectingTower = 1;
@@ -240,6 +235,11 @@ void listenForBluetoothAndAct () {
       if (inputData == 'p' && !isPouringDrink[selectedTower]) {
         Serial.println("Start typing a drink recipe");
         isTypingRecipe = 1;
+      }
+      // type an 'f' to flush the system
+      if (inputData == 'f' && !isPouringDrink[selectedTower]) {
+        setAllPumps(HIGH, selectedTower);
+        Serial.println("Flush all pumps on selected tower");
       }
       // type 'r' to begin rainbow animation
       if (inputData == 'r') {
@@ -251,54 +251,54 @@ void listenForBluetoothAndAct () {
 
 // pour a drink according to the hundredths of a shot that were fed in
 void pourDrink () {
-  for (int tower = 0; tower<3; tower++){
+  for (int tower = 0; tower < 3; tower++) {
     if (isPouringDrink[tower]) {
       elapsedTime[tower] = millis() - drinkStartTime[tower];
       isAnyPumpStillOn[tower] = 0;
-       
-        for (int i = 0; i < sizeof(motorPins[tower]) / sizeof(int); i++) {
-          
-          if (((long) drinkAmounts[tower][i] * motorTimes[tower][i] * 10) <= elapsedTime[tower]) {
-            digitalWrite(motorPins[tower][i], LOW);
-          }
-          else {
-            digitalWrite(motorPins[tower][i], HIGH);
-            isAnyPumpStillOn[tower] = 1;
-          }
-        
+
+      for (int i = 0; i < sizeof(motorPins[tower]) / sizeof(int); i++) {
+
+        if (((long) drinkAmounts[tower][i] * motorTimes[tower][i] * 10) <= elapsedTime[tower]) {
+          digitalWrite(motorPins[tower][i], LOW);
+        }
+        else {
+          digitalWrite(motorPins[tower][i], HIGH);
+          isAnyPumpStillOn[tower] = 1;
+        }
+
       }
       // If we're done making the drink, finish the process
       // Should this boolean be reversed?
       if (!isAnyPumpStillOn[tower]) {
-        cancelAllActionsForSelectedTower(); //TODO make any tower... Make it take in an index
+        cancelAllActionsForSelectedTower(tower);
       }
     }
   }
 }
 
 // cancel a drink recipe
-void cancelAllActionsForSelectedTower () {
+void cancelAllActionsForSelectedTower (int towerNum) {
   Serial.print("Done with drink. The current selected tower is Tower ");
   Serial.println(selectedTower);
-  clearDrinkAmountsForSelectedTower();
-  setAllPumps(LOW);
-  isPouringDrink[selectedTower] = 0;
+  clearDrinkAmountsForSelectedTower(towerNum);
+  setAllPumps(LOW, towerNum);
+  isPouringDrink[towerNum] = 0;
   isSelectingTower = 0;
   isTypingRecipe = 0;
   drinkIndex = 0;
 }
 
 // set all drink amounts to 0
-void clearDrinkAmountsForSelectedTower () {
+void clearDrinkAmountsForSelectedTower (int towerNum) {
   for (int i = 0; i < (sizeof(drinkAmounts[0]) / sizeof(int)); i++) { // added "[0]"
-    drinkAmounts[selectedTower][i] = 0;
+    drinkAmounts[towerNum][i] = 0;
   }
 }
 
 // set all pumps to a given value
-void setAllPumps (int state) {
+void setAllPumps (int state, int towerNum) {
   for (uint16_t i = 0; i < (sizeof(motorPins[0]) / sizeof(int)); i++) { // -- added "[0]"
-    digitalWrite(motorPins[selectedTower][i], state);
+    digitalWrite(motorPins[towerNum][i], state);
   }
 }
 
