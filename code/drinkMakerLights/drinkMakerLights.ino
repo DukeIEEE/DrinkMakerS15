@@ -27,6 +27,7 @@ int isAnyPumpStillOn[] = { // can be true for any number of towers
 };
 int isSelectingTower = 0; // mutually exclusive for all towers
 int isTypingRecipe = 0; // mutually exclusive for all towers
+int isStripShowingRainbowLights = 0; // lights system unified for all towers
 
 int activatedPiece[2] = { // 2D array, index 0 for the towers (values 0 through 2, left to right) and index 1 for the pumps (values 0 through 4, clockwise from the space)
   0, 0
@@ -241,9 +242,14 @@ void listenForBluetoothAndAct () {
         setAllPumps(HIGH, selectedTower);
         Serial.println("Flush all pumps on selected tower");
       }
-      // type 'r' to begin rainbow animation
-      if (inputData == 'r') {
-        playRainbowLights();
+      // type 'l' to toggle colored lights animation
+      if (inputData == 'l') {
+        if (!isStripShowingRainbowLights) {
+          playRainbowLights();
+        }
+        else {
+          loop();
+        }
       }
     }
   }
@@ -257,7 +263,6 @@ void pourDrink () {
       isAnyPumpStillOn[tower] = 0;
 
       for (int i = 0; i < sizeof(motorPins[tower]) / sizeof(int); i++) {
-
         if (((long) drinkAmounts[tower][i] * motorTimes[tower][i] * 10) <= elapsedTime[tower]) {
           digitalWrite(motorPins[tower][i], LOW);
         }
@@ -265,7 +270,6 @@ void pourDrink () {
           digitalWrite(motorPins[tower][i], HIGH);
           isAnyPumpStillOn[tower] = 1;
         }
-
       }
       // If we're done making the drink, finish the process
       // Should this boolean be reversed?
