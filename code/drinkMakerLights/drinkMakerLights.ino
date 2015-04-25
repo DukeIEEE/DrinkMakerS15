@@ -217,16 +217,16 @@ void listenForBluetoothAndAct () {
         // print drink recipe being poured
         for (int i = 0; i < 5; i++) {
           Serial.print("Tower #");
-          Serial.print(selectedTower);
+          Serial.print(selectedTower + 1);
           Serial.print(", Pump #");
-          Serial.println(i);
+          Serial.println(i + 1);
           Serial.print("Drink Amount: ");
           Serial.println(drinkAmounts[selectedTower][i]);
           
           Serial1.print("Tower #");
-          Serial1.print(selectedTower);
+          Serial1.print(selectedTower + 1);
           Serial1.print(", Pump #");
-          Serial1.println(i);
+          Serial1.println(i + 1);
           Serial1.print("Drink Amount: ");
           Serial1.println(drinkAmounts[selectedTower][i]);
         }
