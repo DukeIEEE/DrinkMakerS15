@@ -16,7 +16,7 @@ const int analogPin = A5; // multiplexer analog read pin
 const int strobePin = 2; // multiplexer strobe pin
 const int resetPin = 3; // multiplexer reset pin
 
-char inputData; // data input from bluetooth data
+char inputData = 'x'; // data input from bluetooth data
 
 // Booleans
 int isPouringDrink[] = { // can be true for any number of towers
@@ -81,14 +81,14 @@ void setup () {
   strip.clear();
 
   Serial.begin(9600);
-  Serial1.begin(9600);
+  Serial3.begin(9600);
   Serial.println("finished setup");
-  Serial1.println("finished setup");
+  Serial3.println("finished setup");
 }
 
 void loop () {
   for (int i = 0; i < NUM_LEDS; i++) {
-    bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
+    bool drinkPoured = Serial.read() == '0' | Serial3.read() == '0';
     if (drinkPoured) {
       Serial.println('0');
     }
@@ -113,7 +113,7 @@ void createSequence () {
 void showSequence (int wait, int lightPositionOffset) { // refactor when the machine works?
   for (int i = 0; i < NUM_LEDS; i++) { // main loop
     strip.setPixelColor((i + lightPositionOffset) % NUM_LEDS, findColor(sequence[i]));
-    delay(5); // change this to modify animation speed
+    delay(100); // change this to modify animation speed
     listenForBluetoothAndAct(); // receive bluetooth messages
     pourDrink();
   }
@@ -163,8 +163,8 @@ uint32_t findColor (char c) {
 void listenForBluetoothAndAct () {
 
   // if we have a bluetooth connection
-  if (Serial1.available()) {
-    inputData = Serial1.read();
+  if (Serial3.available()) {
+    inputData = Serial3.read();
     Serial.print("inputdata = ");
     Serial.println(inputData);
 
@@ -231,8 +231,8 @@ void listenForBluetoothAndAct () {
 
 // pour a drink according to the hundredths of a shot that were fed in
 void pourDrink () {
-  if (isPouringDrink) {
-    Serial.print("Making drink in Tower");
+  if (isPouringDrink[selectedTower]) {
+    Serial.print("Making drink in Tower ");
     Serial.println(selectedTower);
     elapsedTime[selectedTower] = millis() - drinkStartTime[selectedTower];
     for (int i = 0; i < sizeof(isAnyPumpStillOn); i++) { // reset all pumps for all towers to LOW
@@ -241,13 +241,14 @@ void pourDrink () {
     // go through the pumps. If we've poured our amounts, turn off the pump
     for (int j = 0; j < sizeof(motorPins) / sizeof(int); j++) {
       for (int i = 0; i < sizeof(motorPins[selectedTower]) / sizeof(int); i++) {
-        // for (int i = 0; i < 15 / sizeof(int); i++) { // may need to use hardcode
+        //        for (int n = 0; n < 15 / sizeof(int); n++) { // may need to use hardcode
         if ((j + 1) * (i + 1) == 15) {
-          Serial1.println("don't need to hardcode");
+          Serial3.println("don't need to hardcode");
         }
         if ((j + 1) * (i + 1) > 15) {
-          Serial1.println("smh...");
+          Serial3.println("smh...");
         }
+
         Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
         Serial.println(elapsedTime[selectedTower]);
         if (((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10) <= elapsedTime[selectedTower]) {
@@ -259,7 +260,6 @@ void pourDrink () {
           Serial.println("HIGH");
           isAnyPumpStillOn[selectedTower] = 1;
         }
-        Serial.println();
       }
     }
 
