@@ -16,7 +16,7 @@ const int analogPin = A5; // multiplexer analog read pin
 const int strobePin = 2; // multiplexer strobe pin
 const int resetPin = 3; // multiplexer reset pin
 
-char inputData = 'x'; // data input from bluetooth data
+char inputData; // data input from bluetooth data
 
 // Booleans
 int isPouringDrink[] = { // can be true for any number of towers
