@@ -214,6 +214,22 @@ void listenForBluetoothAndAct () {
       }
       // if we did get a comma, move to the next number and check to see if our drink should be prepared
       if (inputData == ',') {
+        // print drink recipe being poured
+        for (int i = 0; i < 5; i++) {
+          Serial.print("Tower #");
+          Serial.print(selectedTower);
+          Serial.print(", Pump #");
+          Serial.println(i);
+          Serial.print("Drink Amount: ");
+          Serial.println(drinkAmounts[selectedTower][i]);
+          
+          Serial1.print("Tower #");
+          Serial1.print(selectedTower);
+          Serial1.print(", Pump #");
+          Serial1.println(i);
+          Serial1.print("Drink Amount: ");
+          Serial1.println(drinkAmounts[selectedTower][i]);
+        }
         Serial.println("COMMA");
         drinkIndex++;
         // if we've entered all the available drink values, make the drink
