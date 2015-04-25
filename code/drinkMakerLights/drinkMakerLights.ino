@@ -233,25 +233,6 @@ void listenForBluetoothAndAct () {
   }
 }
 
-// cancel a drink recipe
-void cancelAll () {
-  Serial.print("Done with drink. The current selected tower is Tower ");
-  Serial.println(selectedTower);
-  clearDrinkAmounts();
-  setAllPumps(LOW);
-  isTypingRecipe = 0;
-  isPouringDrink = 0;
-  isSelectingTower = 0;
-  drinkIndex = 0;
-}
-
-// set all drink amounts to 0
-void clearDrinkAmounts () {
-  for (int i = 0; i < (sizeof(drinkAmounts) / sizeof(int)); i++) {
-    drinkAmounts[i] = 0;
-  }
-}
-
 // pour a drink according to the hundredths of a shot that were fed in
 void pourDrink () {
   if (isPouringDrink) {
@@ -280,6 +261,25 @@ void pourDrink () {
     if (!isPumpStillOn) {
       cancelAll();
     }
+  }
+}
+
+// cancel a drink recipe
+void cancelAll () {
+  Serial.print("Done with drink. The current selected tower is Tower ");
+  Serial.println(selectedTower);
+  clearDrinkAmounts();
+  setAllPumps(LOW);
+  isTypingRecipe = 0;
+  isPouringDrink = 0;
+  isSelectingTower = 0;
+  drinkIndex = 0;
+}
+
+// set all drink amounts to 0
+void clearDrinkAmounts () {
+  for (int i = 0; i < (sizeof(drinkAmounts) / sizeof(int)); i++) {
+    drinkAmounts[i] = 0;
   }
 }
 
