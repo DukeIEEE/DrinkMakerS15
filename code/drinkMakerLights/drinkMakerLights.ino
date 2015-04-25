@@ -50,7 +50,7 @@ int drinkIndex = 0; // the index of the current drink we are entering
 int buttonState = 0;  // variable for reading the pushbutton status
 int oldButtonState = 0; // variable for holding the previous button state
 int spectrumValue[7]; // to hold audio spectrum values
-int drinkAmounts[5] = {
+int drinkAmounts[] = {
   0, 0, 0, 0, 0
 }; // hundredths of a shot for the current drink
 
@@ -351,20 +351,8 @@ void listenForBluetoothAndAct () {
       checkAndActOnFlushState();
     }
 
-    // type 't' to open tower selection
-    if (inputData == 't') {
-      isSelectingTower = 1;
-      Serial.println("Tower selection opened");
-    }
-
-    // type a 'p' to start typing a drink recipe
-    if (inputData == 'p' && !isPouringDrink) {
-      Serial.println("Start typing a drink recipe");
-      isTypingRecipe = 1;
-    }
-
     // if we're typing a recipe, add the current value to the recipe
-    if (isTypingRecipe) {
+    if (isTypingRecipe) { // isTypingRecipe && !isSelectingTower
       // if we're not putting in a comma, add the # to the next digit of the current drink
       if (inputData == '0' || inputData == '1' || inputData == '2' || inputData == '3' || inputData == '4' ||
           inputData == '5' || inputData == '6' || inputData == '7' || inputData == '8' || inputData == '9') {
@@ -386,8 +374,7 @@ void listenForBluetoothAndAct () {
         }
       }
     }
-    // if we're not typing a recipe, we can turn on isSelectingTower
-    else if (isSelectingTower) { // !isTypingRecipe
+    else if (isSelectingTower) { // !isTypingRecipe && isSelectingTower
       if (inputData == '1' || inputData == '2' || inputData == '3') {
         selectedTower = inputData - 49;
         isSelectingTower = 0;
@@ -396,6 +383,19 @@ void listenForBluetoothAndAct () {
       }
       else { // incorrect input
         Serial.println("Please type 1, 2, or 3 to select tower");
+      }
+    }
+    // if we're not typing a recipe, we can turn on isTypingRecipe or isSelectingTower
+    else { // !isTypingRecipe && !isSelectingTower
+      // type 't' to open tower selection
+      if (inputData == 't') {
+        isSelectingTower = 1;
+        Serial.println("Tower selection opened");
+      }
+      // type a 'p' to start typing a drink recipe
+      if (inputData == 'p' && !isPouringDrink) {
+        Serial.println("Start typing a drink recipe");
+        isTypingRecipe = 1;
       }
     }
   }
@@ -433,15 +433,18 @@ void pourDrink () {
       Serial.println(elapsedTime);
       if (((long) drinkAmounts[i] * motorTimes[i] * 10) <= elapsedTime) {
         digitalWrite(motorPins[i], LOW);
+        Serial.println("LOW");
       }
       else {
         digitalWrite(motorPins[i], HIGH);
+        Serial.println("HIGH");
         isPumpStillOn = 1;
       }
       Serial.println();
     }
 
     // If we're done making the drink, finish the process
+    // Should this boolean be reversed?
     if (!isPumpStillOn) {
       cancelAll();
     }
