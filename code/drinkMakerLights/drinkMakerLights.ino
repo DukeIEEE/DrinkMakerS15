@@ -27,7 +27,6 @@ int isAnyPumpStillOn[] = { // can be true for any number of towers
 };
 int isSelectingTower = 0; // mutually exclusive for all towers
 int isTypingRecipe = 0; // mutually exclusive for all towers
-int isStripShowingRainbowLights = 0; // lights system unified for all towers
 
 int activatedPiece[2] = { // 2D array, index 0 for the towers (values 0 through 2, left to right) and index 1 for the pumps (values 0 through 4, clockwise from the space)
   0, 0
@@ -241,15 +240,6 @@ void listenForBluetoothAndAct () {
       if (inputData == 'f' && !isPouringDrink[selectedTower]) {
         setAllPumps(HIGH, selectedTower);
         Serial.println("Flush all pumps on selected tower");
-      }
-      // type 'l' to toggle colored lights animation
-      if (inputData == 'l') {
-        if (!isStripShowingRainbowLights) {
-          playRainbowLights();
-        }
-        else {
-          loop();
-        }
       }
     }
   }
