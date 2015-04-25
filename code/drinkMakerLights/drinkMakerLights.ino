@@ -33,14 +33,14 @@ const int analogPin = A5; // multiplexer analog read pin
 const int strobePin = 2; // multiplexer strobe pin
 const int resetPin = 3; // multiplexer reset pin
 
-const int motorPins[][5] = { // 7 motors per tower
-  {22, 24, 26, 28, 30},
-  {36, 38, 40, 42, 44},
-  {3, 4, 5, 6, 7}
-}; // pump pins
-//const int motorPins[] = { // 7 motors per tower
-//  22, 24, 26, 28, 30
+//const int motorPins[][5] = { // 7 motors per tower
+//  {22, 24, 26, 28, 30},
+//  {36, 38, 40, 42, 44},
+//  {3, 4, 5, 6, 7}
 //}; // pump pins
+const int motorPins[] = { // 7 motors per tower
+  22, 24, 26, 28, 30
+}; // pump pins
 
 const long motorTimes[] = {
   17, 30, 30, 30, 17
@@ -75,72 +75,6 @@ const int numLayers = 12;
 char rep_sequence[] = "012345654321";
 char sequence[numLayers * numColors];
 
-uint32_t findColor (char c) {
-  if (c == '0') { // White
-    return WHITE;
-  }
-  else if (c == '1') {
-    return COLOR1;
-  }
-  else if (c == '2') {
-    return COLOR2;
-  }
-  else if (c == '3') {
-    return COLOR3;
-  }
-  else if (c == '4') {
-    return COLOR4;
-  }
-  else if (c == '5') {
-    return COLOR5;
-  }
-  else { // Duke Blue
-    return BLUE;
-  }
-}
-
-void createSequence () {
-  for (int i = 0; i < numColors * (numLayers - 2); i++) {
-    int j = i % (2 * numColors);
-    sequence[i] = rep_sequence[j];
-  }
-}
-
-void showSequence (int wait, int shift) {
-  for (int i = 0; i < NUM_LEDS; i++) {
-    strip.setPixelColor((i + shift) % NUM_LEDS, findColor(sequence[i]));
-    delay(10); // too long?
-    listenForBluetoothAndAct(); // receive bluetooth messages
-    // pourDrink()? main loop?
-  }
-  strip.show();
-  delay(wait);
-}
-
-void bubble (int wait) {
-  for (int i = 0; i < numColors; i++) {
-    for (int j = 0; j < LEDS_PER_GROUP; j++) {
-      strip.setPixelColor(LEDS_PER_GROUP * i + j, findColor(rep_sequence[i % LEDS_PER_GROUP]));
-    }
-    strip.show();
-    delay(wait);
-  }
-}
-
-void bubbleTrain (int wait) {
-  int shiftCount;
-  for (int shiftCount = 0; shiftCount < NUM_GROUPS; shiftCount++) {
-    strip.clear();
-    for (int i = 0; i < NUM_GROUPS; i++) {
-      for (int j = 0; j < LEDS_PER_GROUP; j++) {
-        strip.setPixelColor(LEDS_PER_GROUP * i + j, findColor(rep_sequence[(shiftCount + i) % (2 * LEDS_PER_GROUP)]));
-      }
-    }
-    strip.show();
-    delay(wait);
-  }
-}
-
 void setup () {
   createSequence();
 
@@ -170,6 +104,62 @@ void loop () {
         bubbleTrain(100);
       }
     }
+  }
+}
+
+void createSequence () {
+  for (int i = 0; i < numColors * (numLayers - 2); i++) {
+    int j = i % (2 * numColors);
+    sequence[i] = rep_sequence[j];
+  }
+}
+
+void showSequence (int wait, int lightPositionOffset) { // refactor when the machine works?
+  for (int i = 0; i < NUM_LEDS; i++) { // main loop
+    strip.setPixelColor((i + lightPositionOffset) % NUM_LEDS, findColor(sequence[i]));
+    delay(5); // change this to modify animation speed
+    listenForBluetoothAndAct(); // receive bluetooth messages
+    pourDrink();
+  }
+  strip.show();
+  delay(wait);
+}
+
+void bubbleTrain (int wait) {
+  int shiftCount;
+  for (int shiftCount = 0; shiftCount < NUM_GROUPS; shiftCount++) {
+    strip.clear();
+    for (int i = 0; i < NUM_GROUPS; i++) {
+      for (int j = 0; j < LEDS_PER_GROUP; j++) {
+        strip.setPixelColor(LEDS_PER_GROUP * i + j, findColor(rep_sequence[(shiftCount + i) % (2 * LEDS_PER_GROUP)]));
+      }
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+uint32_t findColor (char c) {
+  if (c == '0') { // White
+    return WHITE;
+  }
+  else if (c == '1') {
+    return COLOR1;
+  }
+  else if (c == '2') {
+    return COLOR2;
+  }
+  else if (c == '3') {
+    return COLOR3;
+  }
+  else if (c == '4') {
+    return COLOR4;
+  }
+  else if (c == '5') {
+    return COLOR5;
+  }
+  else { // Duke Blue
+    return BLUE;
   }
 }
 
@@ -263,7 +253,7 @@ void clearDrinkAmounts () {
 }
 
 // pour a drink according to the hundredths of a shot that were fed in
-void pourDrink () { // where does this go?
+void pourDrink () {
   if (isPouringDrink) {
     Serial.print("Making drink in Tower");
     Serial.println(selectedTower);
