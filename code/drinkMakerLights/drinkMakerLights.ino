@@ -19,7 +19,12 @@ const int resetPin = 3; // multiplexer reset pin
 char inputData; // data input from bluetooth data
 
 // Booleans
-int isPouringDrink[] = {0, 0, 0}; // can be true for any number of towers
+int isPouringDrink[] = { // can be true for any number of towers
+  0, 0, 0
+};
+int isAnyPumpStillOn[] = { // can be true for any number of towers
+  0, 0, 0
+};
 int isSelectingTower = 0; // mutually exclusive for all towers
 int isTypingRecipe = 0; // mutually exclusive for all towers
 
@@ -175,8 +180,8 @@ void listenForBluetoothAndAct () {
       if (inputData == '0' || inputData == '1' || inputData == '2' || inputData == '3' || inputData == '4' ||
           inputData == '5' || inputData == '6' || inputData == '7' || inputData == '8' || inputData == '9') {
         Serial.println("number");
-        drinkAmounts[drinkIndex] *= 10;
-        drinkAmounts[drinkIndex] += inputData;
+        drinkAmounts[selectedTower][drinkIndex] *= 10;
+        drinkAmounts[selectedTower][drinkIndex] += inputData;
       }
       // if we did get a comma, move to the next number and check to see if our drink should be prepared
       if (inputData == ',') {
@@ -186,9 +191,9 @@ void listenForBluetoothAndAct () {
         if (drinkIndex >= (sizeof(drinkAmounts) / sizeof(int))) {
           drinkIndex = 0;
           isTypingRecipe = 0;
-          isPouringDrink = 1;
-          drinkStartTime = millis();
-          elapsedTime = 0;
+          isPouringDrink[selectedTower] = 1;
+          drinkStartTime[selectedTower] = millis();
+          elapsedTime[selectedTower] = 0;
         }
       }
     }
@@ -229,27 +234,38 @@ void pourDrink () {
   if (isPouringDrink) {
     Serial.print("Making drink in Tower");
     Serial.println(selectedTower);
-    elapsedTime = millis() - drinkStartTime;
-    int isPumpStillOn = 0;
+    elapsedTime[selectedTower] = millis() - drinkStartTime[selectedTower];
+    for (int i = 0; i < sizeof(isAnyPumpStillOn); i++) { // reset all pumps for all towers to LOW
+      isAnyPumpStillOn[i] = 0;
+    }
     // go through the pumps. If we've poured our amounts, turn off the pump
-    for (int i = 0; i < sizeof(motorPins) / sizeof(int); i++) {
-      Serial.println((long) drinkAmounts[i] * motorTimes[i] * 10);
-      Serial.println(elapsedTime);
-      if (((long) drinkAmounts[i] * motorTimes[i] * 10) <= elapsedTime) {
-        digitalWrite(motorPins[i], LOW);
-        Serial.println("LOW");
+    for (int j = 0; j < sizeof(motorPins) / sizeof(int); j++) {
+      for (int i = 0; i < sizeof(motorPins[selectedTower]) / sizeof(int); i++) {
+        // for (int i = 0; i < 15 / sizeof(int); i++) { // may need to use hardcode
+        if ((j + 1) * (i + 1) == 15) {
+          Serial1.println("don't need to hardcode");
+        }
+        if ((j + 1) * (i + 1) > 15) {
+          Serial1.println("smh...");
+        }
+        Serial.println((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10);
+        Serial.println(elapsedTime[selectedTower]);
+        if (((long) drinkAmounts[selectedTower][i] * motorTimes[selectedTower][i] * 10) <= elapsedTime[selectedTower]) {
+          digitalWrite(motorPins[selectedTower][i], LOW);
+          Serial.println("LOW");
+        }
+        else {
+          digitalWrite(motorPins[selectedTower][i], HIGH);
+          Serial.println("HIGH");
+          isAnyPumpStillOn[selectedTower] = 1;
+        }
+        Serial.println();
       }
-      else {
-        digitalWrite(motorPins[i], HIGH);
-        Serial.println("HIGH");
-        isPumpStillOn = 1;
-      }
-      Serial.println();
     }
 
     // If we're done making the drink, finish the process
     // Should this boolean be reversed?
-    if (!isPumpStillOn) {
+    if (!isAnyPumpStillOn[selectedTower]) {
       cancelAllActionsForSelectedTower();
     }
   }
@@ -259,25 +275,25 @@ void pourDrink () {
 void cancelAllActionsForSelectedTower () {
   Serial.print("Done with drink. The current selected tower is Tower ");
   Serial.println(selectedTower);
-  clearDrinkAmounts();
+  clearDrinkAmountsForSelectedTower();
   setAllPumps(LOW);
-  isPouringDrink = 0;
+  isPouringDrink[selectedTower] = 0;
   isSelectingTower = 0;
   isTypingRecipe = 0;
   drinkIndex = 0;
 }
 
 // set all drink amounts to 0
-void clearDrinkAmounts () {
+void clearDrinkAmountsForSelectedTower () {
   for (int i = 0; i < (sizeof(drinkAmounts) / sizeof(int)); i++) {
-    drinkAmounts[i] = 0;
+    drinkAmounts[selectedTower][i] = 0;
   }
 }
 
 // set all pumps to a given value
 void setAllPumps (int state) {
   for (uint16_t i = 0; i < (sizeof(motorPins) / sizeof(int)); i++) {
-    digitalWrite(motorPins[i], state);
+    digitalWrite(motorPins[selectedTower][i], state);
   }
 }
 
