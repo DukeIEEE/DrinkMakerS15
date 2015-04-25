@@ -90,8 +90,8 @@ void setup () {
   strip.begin();
   delay(100);
 
-  strip.clear();
-  strip.show();
+//  strip.clear();
+//  strip.show();
 
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -100,28 +100,32 @@ void setup () {
 }
 
 void loop () {
-  if (isStripDisplayingRainbowLights) {
-    delay(100); // change this to modify animation speed
+    playRainbowLights();
+    strip.show();
+    delay(10);
     listenForBluetoothAndAct(); // receive bluetooth messages
     pourDrink();
-    playRainbowLights();
-  }
-  else {
-    for (int i = 0; i < NUM_LEDS; i++) {
-      bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
-      if (drinkPoured) {
-        Serial.println('0');
-      }
-      if (!drinkPoured) {
-        showSequence(50, i);
-      }
-      else {
-        for (int j = 0; j < 2; j++) {
-          bubbleTrain(100);
-        }
-      }
-    }
-  }
+//  if (isStripDisplayingRainbowLights) {
+//    delay(100); // change this to modify animation speed
+//    listenForBluetoothAndAct(); // receive bluetooth messages
+//    pourDrink();
+//  }
+//  else {
+//    for (int i = 0; i < NUM_LEDS; i++) {
+//      bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
+//      if (drinkPoured) {
+//        Serial.println('0');
+//      }
+//      if (!drinkPoured) {
+//        showSequence(50, i);
+//      }
+//      else {
+//        for (int j = 0; j < 2; j++) {
+//          bubbleTrain(100);
+//        }
+//      }
+//    }
+//  }
 }
 
 void createSequence () {
@@ -328,7 +332,7 @@ void spiral (uint8_t wait) {
 void playRainbowLights () {
   uint16_t i;
   for (i = 0; i < strip.numPixels(); i++) {
-    strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255));
+    strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + colorCounter) & 255) / 1.5);
   }
   colorCounter++;
   if (colorCounter >= 256) {
