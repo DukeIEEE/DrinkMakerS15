@@ -90,8 +90,8 @@ void setup () {
   strip.begin();
   delay(100);
 
-//  strip.clear();
-//  strip.show();
+  //  strip.clear();
+  //  strip.show();
 
   Serial.begin(9600);
   Serial1.begin(9600);
@@ -100,32 +100,32 @@ void setup () {
 }
 
 void loop () {
-    playRainbowLights();
-    strip.show();
-    delay(10);
-    listenForBluetoothAndAct(); // receive bluetooth messages
-    pourDrink();
-//  if (isStripDisplayingRainbowLights) {
-//    delay(100); // change this to modify animation speed
-//    listenForBluetoothAndAct(); // receive bluetooth messages
-//    pourDrink();
-//  }
-//  else {
-//    for (int i = 0; i < NUM_LEDS; i++) {
-//      bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
-//      if (drinkPoured) {
-//        Serial.println('0');
-//      }
-//      if (!drinkPoured) {
-//        showSequence(50, i);
-//      }
-//      else {
-//        for (int j = 0; j < 2; j++) {
-//          bubbleTrain(100);
-//        }
-//      }
-//    }
-//  }
+  playRainbowLights();
+  strip.show();
+  delay(10);
+  listenForBluetoothAndAct(); // receive bluetooth messages
+  pourDrink();
+  //  if (isStripDisplayingRainbowLights) {
+  //    delay(100); // change this to modify animation speed
+  //    listenForBluetoothAndAct(); // receive bluetooth messages
+  //    pourDrink();
+  //  }
+  //  else {
+  //    for (int i = 0; i < NUM_LEDS; i++) {
+  //      bool drinkPoured = Serial.read() == '0' | Serial1.read() == '0';
+  //      if (drinkPoured) {
+  //        Serial.println('0');
+  //      }
+  //      if (!drinkPoured) {
+  //        showSequence(50, i);
+  //      }
+  //      else {
+  //        for (int j = 0; j < 2; j++) {
+  //          bubbleTrain(100);
+  //        }
+  //      }
+  //    }
+  //  }
 }
 
 void createSequence () {
@@ -222,7 +222,7 @@ void listenForBluetoothAndAct () {
           Serial.println(i + 1);
           Serial.print("Drink Amount: ");
           Serial.println(drinkAmounts[selectedTower][i]);
-          
+
           Serial1.print("Tower #");
           Serial1.print(selectedTower + 1);
           Serial1.print(", Pump #");
