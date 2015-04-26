@@ -27,7 +27,7 @@ int isAnyPumpStillOn[] = { // can be true for any number of towers
 };
 int isSelectingTower = 0; // mutually exclusive for all towers
 int isTypingRecipe = 0; // mutually exclusive for all towers
-int isStripDisplayingRainbowLights = 1;
+int isStripDisplayingRainbowLights = 1; // currently unused, but can combine with commented code in loop() for toggling between blue-white lights and rainbow lights
 
 int activatedPiece[2] = { // 2D array, index 0 for the towers (values 0 through 2, left to right) and index 1 for the pumps (values 0 through 4, clockwise from the space)
   0, 0
